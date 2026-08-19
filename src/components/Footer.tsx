@@ -2,8 +2,8 @@ import { PawIcon } from "./icons";
 
 const columns = [
   {
-    title: "Company",
-    links: ["About Us", "Careers", "Press", "Contact"],
+    title: "Practice",
+    links: ["About", "Contact"],
   },
   {
     title: "Services",
@@ -11,11 +11,7 @@ const columns = [
   },
   {
     title: "Support",
-    links: ["Help Center", "FAQs", "Privacy Policy", "Terms of Service"],
-  },
-  {
-    title: "Social",
-    links: ["Instagram", "Facebook", "X (Twitter)", "LinkedIn"],
+    links: ["FAQs", "Privacy Policy", "Terms of Service"],
   },
 ];
 
@@ -29,7 +25,7 @@ export function Footer() {
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
                 <PawIcon className="h-5 w-5" />
               </span>
-              VetConsult
+              Dr. Nituparna Sarkar
             </div>
             <p className="mt-4 text-sm text-muted">
               Trusted online veterinary consultations, whenever your pet needs care.
@@ -51,7 +47,7 @@ export function Footer() {
           ))}
         </div>
         <div className="mt-12 border-t border-border pt-6 text-sm text-muted">
-          © {new Date().getFullYear()} VetConsult. All rights reserved.
+          © {new Date().getFullYear()} Dr. Nituparna Sarkar. All rights reserved.
         </div>
       </div>
     </footer>

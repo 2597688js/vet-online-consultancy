@@ -1,18 +1,32 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Button } from "./Button";
 import { PawIcon } from "./icons";
+import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "How It Works", href: "/#how-it-works" },
   { label: "Services", href: "/#services" },
-  { label: "Veterinarians", href: "/#veterinarians" },
+  { label: "About", href: "/#about" },
   { label: "FAQs", href: "/#faqs" },
 ];
 
+function greetingName(fullName: string): string {
+  const words = fullName.split(" ");
+  return words[0].endsWith(".") ? words.slice(0, 2).join(" ") : words[0];
+}
+
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    setMenuOpen(false);
+    navigate("/");
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur">
@@ -21,7 +35,7 @@ export function Header() {
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
             <PawIcon className="h-5 w-5" />
           </span>
-          VetConsult
+          Dr. Nituparna Sarkar
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -37,12 +51,23 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Button variant="text" href="/login">
-            Login
-          </Button>
-          <Button variant="primary" href="/login">
-            Book Now
-          </Button>
+          {user ? (
+            <>
+              <span className="text-sm font-medium text-body">Hi, {greetingName(user.full_name)}</span>
+              <Button variant="text" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="text" href="/login">
+                Login
+              </Button>
+              <Button variant="primary" href="/login">
+                Book Now
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -67,12 +92,20 @@ export function Header() {
             </a>
           ))}
           <div className="mt-2 flex gap-3 px-3">
-            <Button variant="secondary" href="/login" className="flex-1">
-              Login
-            </Button>
-            <Button variant="primary" href="/login" className="flex-1">
-              Book Now
-            </Button>
+            {user ? (
+              <Button variant="secondary" onClick={handleLogout} className="flex-1">
+                Logout
+              </Button>
+            ) : (
+              <>
+                <Button variant="secondary" href="/login" className="flex-1">
+                  Login
+                </Button>
+                <Button variant="primary" href="/login" className="flex-1">
+                  Book Now
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

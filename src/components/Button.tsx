@@ -26,6 +26,7 @@ interface ButtonAsButton extends CommonProps {
   href?: undefined;
   onClick?: () => void;
   type?: "button" | "submit";
+  disabled?: boolean;
 }
 
 interface ButtonAsLink extends CommonProps {
@@ -44,9 +45,9 @@ export function Button(props: ButtonAsButton | ButtonAsLink) {
     );
   }
 
-  const { onClick, type = "button" } = props as ButtonAsButton;
+  const { onClick, type = "button", disabled } = props as ButtonAsButton;
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} disabled={disabled} className={classes}>
       {children}
     </button>
   );
