@@ -72,7 +72,6 @@ EXPORT_COLUMNS = [
     ("Owner WhatsApp", lambda a: a.contact_phone or a.pet.owner.phone or ""),
     ("Account name", lambda a: a.pet.owner.full_name),
     ("Account email", lambda a: a.pet.owner.email),
-    ("Account phone", lambda a: a.pet.owner.phone or ""),
     ("Pet name", lambda a: a.pet.name or ""),
     ("Species", lambda a: a.pet.species),
     ("Breed", lambda a: a.pet.breed or ""),
