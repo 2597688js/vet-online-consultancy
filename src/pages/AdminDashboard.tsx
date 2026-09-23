@@ -95,6 +95,13 @@ export function AdminDashboard() {
               <h1 className="text-2xl font-bold text-ink">Appointments</h1>
               <p className="text-sm text-muted">Consultations happen over WhatsApp video — update status here after each call.</p>
             </div>
+            <a
+              href={api.APPOINTMENTS_EXPORT_URL}
+              download
+              className="ml-auto inline-flex h-10 shrink-0 items-center rounded-lg border border-border bg-white px-4 text-sm font-semibold text-ink hover:border-ink"
+            >
+              Download Excel
+            </a>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
@@ -141,6 +148,11 @@ export function AdminDashboard() {
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGE_CLASSES[appointment.status]}`}>
                           {appointment.status}
                         </span>
+                        {appointment.home_visit_required && (
+                          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                            Home visit
+                          </span>
+                        )}
                       </div>
                       <p className="mt-1 text-sm text-body">
                         {appointment.owner_name} · {appointment.owner_phone ?? "no phone on file"}

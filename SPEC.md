@@ -42,8 +42,8 @@ contacts the owner on WhatsApp → marks it Confirmed / Completed / Cancelled`
 - **Pet details**: name (optional), species (free text with suggestions), breed, sex
   (Male / Female / Not sure), age (years + months, stored as an approximate date of birth),
   weight and color (optional)
-- **Health information**: main problem (required), medical history, current medications,
-  allergies (optional)
+- **Health information**: main problem (required), require home visit (Yes/No, default No),
+  medical history, current medications, allergies (optional)
 
 There is **no time slot, payment or photo upload**. Owners send photos and videos over
 WhatsApp (links on the form, on the confirmation screen and site-wide). The confirmation
@@ -52,13 +52,15 @@ screen has a prefilled "Send photos & videos on WhatsApp" message.
 **Admin dashboard** (`src/pages/AdminDashboard.tsx`): each request shows the pet (name or
 "Unnamed <species>"), owner name and number with a WhatsApp button, breed / sex / age / weight,
 main problem, medical history, medications and allergies. Status moves
-Pending → Confirmed → Completed, or → Cancelled with an optional reason.
+Pending → Confirmed → Completed, or → Cancelled with an optional reason. Home-visit requests get
+a **Home visit** tag. **Download Excel** (`GET /api/admin/appointments/export`, built with
+`openpyxl`) returns all requests, one row each, with owner, pet, health, home-visit, status and date columns.
 
 ### Data model (`backend/app/models.py`)
 
 - `users` (owners and the doctor), `doctor_profiles` (one row: Dr. Sarkar), `pets`, `appointments`.
 - An appointment stores the booking's `contact_name` / `contact_phone`, `symptoms` (the main
-  problem) and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
+  problem), `home_visit_required` and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
   no time; older slot-based bookings keep theirs.
 - Each request creates a new `pets` row; there's no saved-pets list.
 

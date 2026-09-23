@@ -63,6 +63,7 @@ def create_appointment(
         symptoms=payload.symptoms.strip(),
         contact_name=payload.contact_name.strip(),
         contact_phone=payload.contact_phone.strip(),
+        home_visit_required=payload.home_visit_required,
         status=AppointmentStatus.PENDING,
     )
     db.add(appointment)

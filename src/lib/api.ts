@@ -45,6 +45,7 @@ export interface Appointment {
   symptoms: string | null;
   contact_name: string | null;
   contact_phone: string | null;
+  home_visit_required: boolean;
   status: AppointmentStatus;
   confirmed_at: string | null;
   cancellation_reason: string | null;
@@ -143,6 +144,7 @@ export interface AppointmentInput {
   symptoms: string;
   contact_name: string;
   contact_phone: string;
+  home_visit_required: boolean;
 }
 
 export function createAppointment(token: string, input: AppointmentInput) {
@@ -157,6 +159,8 @@ export function listAdminAppointments(status?: AppointmentStatus) {
   const qs = status ? `?status=${status}` : "";
   return request<AppointmentAdmin[]>(`/admin/appointments${qs}`);
 }
+
+export const APPOINTMENTS_EXPORT_URL = "/api/admin/appointments/export";
 
 export function updateAppointmentStatus(
   appointmentId: string,

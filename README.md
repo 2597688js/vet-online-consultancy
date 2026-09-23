@@ -8,12 +8,12 @@ and submit consultation requests; Dr. Sarkar manages them from the admin dashboa
 1. The pet owner signs in and fills in the form at `/book`:
    - **Owner:** name and WhatsApp number (pre-filled from their account, editable per request)
    - **Pet:** name (optional), species, breed, age, sex, plus optional weight and color
-   - **Health:** main problem (required), medical history, current medications and allergies (optional)
+   - **Health:** main problem (required), require home visit (Yes/No), medical history, current medications and allergies (optional)
    - Owners share photos and videos with Dr. Sarkar directly on WhatsApp.
 2. There is no time slot to pick. The request is saved as **Pending**.
 3. Dr. Sarkar sees each request on the admin dashboard with the owner's contact and the pet's details,
    contacts the owner using its WhatsApp button to arrange the consultation, then marks it **Confirmed**, **Completed** or
-   **Cancelled**.
+   **Cancelled**. **Download Excel** on the dashboard exports every request with the owner's and pet's details.
 
 Quick start (needs Node, Python 3.11+ and a running PostgreSQL):
 

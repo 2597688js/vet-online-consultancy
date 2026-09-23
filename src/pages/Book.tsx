@@ -55,6 +55,7 @@ export function Book() {
   const whatsAppHref = doctorWhatsAppLink();
 
   const [symptoms, setSymptoms] = useState("");
+  const [homeVisitRequired, setHomeVisitRequired] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -129,6 +130,7 @@ export function Book() {
       const appointment = await api.createAppointment(token, {
         pet_id: createdPet.id,
         symptoms: symptoms.trim(),
+        home_visit_required: homeVisitRequired,
         contact_name: ownerName.trim(),
         contact_phone: ownerPhone.trim(),
       });
@@ -202,6 +204,7 @@ export function Book() {
                   setConfirmed(null);
                   setPet(initialPetForm);
                   setSymptoms("");
+                  setHomeVisitRequired(false);
                 }}
               >
                 Book another
@@ -423,6 +426,32 @@ export function Book() {
                     onChange={(e) => setSymptoms(e.target.value)}
                   />
                 </label>
+
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-2 text-sm font-semibold text-ink">Require home visit?</legend>
+                  <div className="flex gap-3">
+                    {[
+                      { label: "No", value: false },
+                      { label: "Yes", value: true },
+                    ].map((option) => (
+                      <label
+                        key={option.label}
+                        className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-base font-medium sm:flex-none sm:px-8 ${
+                          homeVisitRequired === option.value ? "border-ink bg-ink text-white" : "border-border bg-white text-ink hover:border-ink"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="home-visit"
+                          className="sr-only"
+                          checked={homeVisitRequired === option.value}
+                          onChange={() => setHomeVisitRequired(option.value)}
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
 
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Medical history (optional)</span>
