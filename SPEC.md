@@ -14,8 +14,9 @@ from that plan; see §0 "Not built" for what was dropped.
 - **Frontend**: React 19 + Vite + TypeScript, Tailwind CSS v4 (`@tailwindcss/vite`, CSS-first
   `@theme` config in `src/index.css`, no `tailwind.config.js`), `react-router-dom` v7.
   Brand palette (teal primary `--color-primary-600: #0d9488`), Inter font.
-- **Backend**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (`backend/`). On startup it creates
-  the database if missing, runs migrations and creates Dr. Sarkar's doctor profile.
+- **Backend**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (`backend/`). On startup it starts its
+  own PostgreSQL server (port 5433, data in the project's `db/` folder, created with `initdb` on first
+  run), creates the database if missing, runs migrations and creates Dr. Sarkar's doctor profile.
 - **Run**: see `HOW_TO_USE.md`. Frontend on port 5173 proxies `/api` to the backend on 8000.
 
 ### Pages

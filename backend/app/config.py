@@ -4,14 +4,18 @@ from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+PROJECT_DIR = BACKEND_DIR.parent
 ENV_FILE = BACKEND_DIR / ".env"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ENV_FILE, extra="ignore")
 
-    # Default: a local Postgres, connecting as the current OS user (Homebrew / Postgres.app default).
-    database_url: str = "postgresql+psycopg://localhost:5432/vet_online_consultancy"
+    # Default: the project's own Postgres server (data in <project>/db, port 5433), started by the backend,
+    # connecting as the current OS user.
+    database_url: str = "postgresql+psycopg://localhost:5433/vet_online_consultancy"
+    # Where that server keeps its data. Only used when DATABASE_URL points at localhost:5433.
+    local_postgres_dir: str = str(PROJECT_DIR / "db")
     # Signs login tokens. Generated and saved to backend/.env on first run if not set.
     jwt_secret: str = ""
     # The doctor's email: receives appointment reminder emails.

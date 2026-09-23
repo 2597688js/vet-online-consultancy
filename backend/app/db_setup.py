@@ -1,5 +1,7 @@
-"""Startup tasks: create the database if missing, run migrations, make sure the doctor exists."""
+"""Startup tasks: start the project's Postgres, create the database if missing, run migrations, make sure the doctor exists."""
 import logging
+import subprocess
+from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
@@ -13,6 +15,37 @@ from app.models import DoctorProfile, User, UserRole, VerificationStatus
 logger = logging.getLogger("uvicorn.error")
 
 DOCTOR_NAME = "Dr. Nituparna Sarkar"
+LOCAL_POSTGRES_PORT = 5433
+
+
+def _start_local_postgres() -> None:
+    """Run a Postgres server with its data in the project's db/ folder, creating it on first run.
+
+    Skipped when DATABASE_URL points at any other server. The server keeps running after the backend
+    stops; stop it with `pg_ctl -D db stop` from the project folder.
+    """
+    url = make_url(settings.database_url)
+    if url.host not in ("localhost", "127.0.0.1") or url.port != LOCAL_POSTGRES_PORT:
+        return
+
+    data_dir = Path(settings.local_postgres_dir)
+    if not (data_dir / "PG_VERSION").exists():
+        command = ["initdb", "-D", str(data_dir), "--auth=trust", "--encoding=UTF8", "--locale=en_US.UTF-8"]
+        if url.username:
+            command += ["--username", url.username]
+        subprocess.run(command, check=True, capture_output=True)
+        with open(data_dir / "postgresql.conf", "a") as conf:
+            conf.write(f"\nport = {LOCAL_POSTGRES_PORT}\n")
+        logger.info("Created Postgres data folder at %s", data_dir)
+
+    if subprocess.run(["pg_ctl", "status", "-D", str(data_dir)], capture_output=True).returncode == 0:
+        return
+    subprocess.run(
+        ["pg_ctl", "start", "-w", "-D", str(data_dir), "-l", str(data_dir / "server.log")],
+        check=True,
+        capture_output=True,
+    )
+    logger.info("Started Postgres on port %s (data in %s)", LOCAL_POSTGRES_PORT, data_dir)
 
 
 def _create_database_if_missing() -> None:
@@ -60,6 +93,7 @@ def _ensure_doctor() -> None:
 
 
 def prepare_database() -> None:
+    _start_local_postgres()
     _create_database_if_missing()
     config = Config(str(BACKEND_DIR / "alembic.ini"))
     config.attributes["configure_logger"] = False  # keep uvicorn's logging intact

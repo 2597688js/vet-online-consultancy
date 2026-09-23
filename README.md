@@ -15,7 +15,8 @@ and submit consultation requests; Dr. Sarkar manages them from the admin dashboa
    contacts the owner using its WhatsApp button to arrange the consultation, then marks it **Confirmed**, **Completed** or
    **Cancelled**. **Download Excel** on the dashboard exports every request with the owner's and pet's details.
 
-Quick start (needs Node, Python 3.11+ and a running PostgreSQL):
+Quick start (needs Node, Python 3.11+ and PostgreSQL installed; the backend runs its own PostgreSQL server
+with the data in the project's `db/` folder):
 
 ```bash
 # terminal 1: backend

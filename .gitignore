@@ -28,6 +28,9 @@ backend/.venv
 backend/__pycache__
 backend/**/__pycache__
 backend/.env
+
+# Project Postgres data (created by the backend on first run)
+db/
 *.pyc
 
 # Playwright CLI artifacts

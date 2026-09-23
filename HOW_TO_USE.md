@@ -10,7 +10,7 @@ submit consultation requests; the doctor contacts them on WhatsApp and manages r
 
 - **Node.js** 20.19+ or 22.12+: https://nodejs.org
 - **Python** 3.11+: https://www.python.org/downloads/
-- **PostgreSQL**, installed and running. On macOS: `brew install postgresql@16 && brew services start postgresql@16`
+- **PostgreSQL**, installed (it doesn't need to be running). On macOS: `brew install postgresql@18`
 
 ## Setup and run
 
@@ -33,9 +33,10 @@ uvicorn app.main:app --reload
 
 API: http://localhost:8000 (interactive docs at http://localhost:8000/docs).
 
-On startup the backend creates the `vet_online_consultancy` database if it doesn't exist, applies all
-migrations, creates the doctor's profile, and saves a generated `JWT_SECRET` (signs pet owners'
-login tokens) into `backend/.env`.
+On startup the backend starts its own PostgreSQL server on port 5433, with the data in the project's `db/`
+folder (created on first run and kept out of git). It then creates the `vet_online_consultancy` database
+if it doesn't exist, applies all migrations, creates the doctor's profile, and saves a generated
+`JWT_SECRET` (signs pet owners' login tokens) into `backend/.env`.
 You don't need to configure anything.
 
 **3. Frontend** (terminal 2, from the project root)
@@ -91,8 +92,8 @@ Open **http://localhost:5173/admin**. There's no login or password.
 Everything works with the defaults. To change something, create `backend/.env`; see
 `backend/.env.example` for the options.
 
-- **Postgres needs a username/password.** By default the backend connects to a local Postgres as your OS user
-  (the Homebrew / Postgres.app default). Otherwise set:
+- **Use a different Postgres server.** By default the backend runs its own server from `db/` (see step 2). To use
+  another server instead, set for example:
   `DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/vet_online_consultancy`
 - **Dr. Sarkar's WhatsApp:** set `VITE_DOCTOR_WHATSAPP=+91XXXXXXXXXX` in `.env.local` at the project root. This turns on
   the "Chat on WhatsApp" links (floating button, home page, footer, booking page) so owners can message her and
@@ -104,11 +105,23 @@ Everything works with the defaults. To change something, create `backend/.env`; 
 
 Restart the backend (and frontend, for `.env.local`) after changing these.
 
+## The database
+
+- **Where:** the `db/` folder in the project, created by the backend. Don't edit files in it directly, and don't
+  copy it while the server is running.
+- **See the data:** connect TablePlus or pgAdmin to host `localhost`, port `5433`, your macOS username, no
+  password, database `vet_online_consultancy`. Or run `psql -p 5433 vet_online_consultancy`. The admin
+  dashboard's **Download Excel** button exports all requests.
+- **Start/stop:** the backend starts it automatically; it keeps running after the backend stops. To stop it,
+  run `pg_ctl -D db stop` from the project folder.
+- **Backup:** `pg_dump -p 5433 vet_online_consultancy > backup.sql`.
+
 ## Troubleshooting
 
 | Problem | Fix |
 |---|---|
-| `connection refused` on backend start | Postgres isn't running. Start it (`brew services start postgresql@16`). |
+| `initdb` / `pg_ctl` not found on backend start | PostgreSQL isn't installed or isn't on your PATH (`brew install postgresql@18`). |
+| Backend can't start the database | Check `db/server.log`. If port 5433 is taken, stop whatever uses it. |
 | `role "..." does not exist` / `password authentication failed` | Set `DATABASE_URL` in `backend/.env` (see Configuration). |
 | `permission denied to create database` | Create it yourself (`createdb vet_online_consultancy`) or use a user that can. |
 | Frontend shows network errors, or the terminal shows `http proxy error ... ECONNREFUSED` | The backend isn't running. Start it (step 2) on port 8000. |
