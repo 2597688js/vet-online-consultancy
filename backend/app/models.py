@@ -78,7 +78,6 @@ class Pet(Base):
     gender: Mapped[PetGender] = mapped_column(pg_enum(PetGender, "pet_gender"), default=PetGender.UNKNOWN, nullable=False)
     date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
     weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
-    color: Mapped[str | None] = mapped_column(String, nullable=True)
     allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
     current_medications: Mapped[str | None] = mapped_column(Text, nullable=True)
     medical_history: Mapped[str | None] = mapped_column(Text, nullable=True)

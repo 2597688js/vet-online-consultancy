@@ -50,7 +50,6 @@ class PetCreateRequest(BaseModel):
     gender: PetGender = PetGender.UNKNOWN
     date_of_birth: date | None = None
     weight_kg: Decimal | None = None
-    color: str | None = Field(default=None, max_length=100)
     allergies: str | None = None
     current_medications: str | None = None
     medical_history: str | None = None
@@ -64,7 +63,6 @@ class PetOut(BaseModel):
     gender: PetGender
     date_of_birth: date | None
     weight_kg: Decimal | None
-    color: str | None
     allergies: str | None
     current_medications: str | None
     medical_history: str | None

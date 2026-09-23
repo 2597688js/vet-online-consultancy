@@ -21,7 +21,6 @@ export interface Pet {
   gender: PetGender;
   date_of_birth: string | null;
   weight_kg: string | null;
-  color: string | null;
   allergies: string | null;
   current_medications: string | null;
   medical_history: string | null;
@@ -113,7 +112,6 @@ export interface PetInput {
   gender?: PetGender;
   date_of_birth?: string;
   weight_kg?: string;
-  color?: string;
   allergies?: string;
   current_medications?: string;
   medical_history?: string;

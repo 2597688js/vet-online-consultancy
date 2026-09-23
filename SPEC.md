@@ -40,11 +40,13 @@ contacts the owner on WhatsApp → marks it Confirmed / Completed / Cancelled`
 **Request form** (`src/pages/Book.tsx`), one page, no steps:
 
 - **Owner details**: name, WhatsApp number (pre-filled from the account, editable per request)
+- **Home visit**: "Does your pet need a home visit?" Yes/No with no default (must be answered); if Yes,
+  an optional address, with a link to share the location on WhatsApp instead
 - **Pet details**: name (optional), species (free text with suggestions), breed, sex
   (Male / Female / Not sure), age (years + months, stored as an approximate date of birth),
-  weight and color (optional)
-- **Health information**: main problem (required), require home visit (Yes/No, default No; if Yes, an optional address, with a link to share the location on WhatsApp instead),
-  medical history, current medications, allergies (optional)
+  weight (optional)
+- **Health information**: main problem (required), medical history, current medications,
+  allergies (optional)
 
 There is **no time slot, payment or photo upload**. Owners send photos and videos over
 WhatsApp (links on the form, on the confirmation screen and site-wide). The confirmation
@@ -64,7 +66,7 @@ Three tables, each with only the columns the app uses:
 - `users` (pet owners only): `id`, `email`, `password_hash`, `google_id`, `full_name`, `phone`.
   Dr. Sarkar has no row: she doesn't sign in (`/admin` has no login).
 - `pets`: `id`, `owner_id`, `name`, `species`, `breed`, `gender`, `date_of_birth` (from the age
-  entered), `weight_kg`, `color`, `allergies`, `current_medications`, `medical_history`.
+  entered), `weight_kg`, `allergies`, `current_medications`, `medical_history`.
 - `appointments` (the requests): `id`, `pet_id`, `contact_name`, `contact_phone`, `symptoms` (the
   main problem), `home_visit_required`, `home_visit_address`, `status`,
   `created_at`. The owner is reached through the pet.

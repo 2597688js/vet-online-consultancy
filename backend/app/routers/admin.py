@@ -80,7 +80,6 @@ EXPORT_COLUMNS = [
     ("Age", lambda a: _age(a.pet.date_of_birth)),
     ("Date of birth (approx.)", lambda a: a.pet.date_of_birth.isoformat() if a.pet.date_of_birth else ""),
     ("Weight (kg)", lambda a: float(a.pet.weight_kg) if a.pet.weight_kg is not None else ""),
-    ("Color / markings", lambda a: a.pet.color or ""),
     ("Main problem", lambda a: a.symptoms or ""),
     ("Medical history", lambda a: a.pet.medical_history or ""),
     ("Current medications", lambda a: a.pet.current_medications or ""),

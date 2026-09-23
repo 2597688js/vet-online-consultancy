@@ -70,9 +70,11 @@ Open **http://localhost:5173/admin**. There's no login or password.
 1. Register or sign in, then open **Book Now** (`/book`).
 2. Fill in the form:
    - **Owner details:** name and WhatsApp number (pre-filled from the account; can be changed per request)
-   - **Pet details:** name (optional), species, breed, sex, age in years and months, plus optional weight and color
-   - **Health information:** main problem (required), **Require home visit?** (Yes/No; if Yes, an optional address, or they can share their location on WhatsApp), plus optional medical
-     history, current medications and allergies
+   - **Home visit:** "Does your pet need a home visit?" (Yes/No, must be answered). If Yes, an optional
+     address, or they can share their location on WhatsApp
+   - **Pet details:** name (optional), species, breed, sex, age in years and months, plus optional weight
+   - **Health information:** main problem (required), plus optional medical history, current medications
+     and allergies
 3. Click **Submit consultation request**. There's no time slot to pick; Dr. Sarkar contacts the owner on WhatsApp.
 4. To share photos or videos, use a **WhatsApp** link: the button on the confirmation screen, the link in
    the Health section, or the floating button on every page.
@@ -84,7 +86,7 @@ Open **http://localhost:5173/admin**. There's no login or password.
 2. Use the **WhatsApp** button on a request to message the owner and arrange the consultation.
 3. Mark the request **Confirmed**, **Completed** or **Cancelled** (cancelling asks you to confirm first).
 4. Click **Download Excel** to get every request as a spreadsheet: owner details, pet details, health
-   information, home visit, status and dates, one row per request. Requests that need a home visit are
+   information, home visit and address, status and submitted date, one row per request. Requests that need a home visit are
    also tagged **Home visit** on the dashboard.
 
 ## Configuration (optional)

@@ -25,7 +25,6 @@ interface PetFormState {
   ageYears: string;
   ageMonths: string;
   weightKg: string;
-  color: string;
   medicalHistory: string;
   allergies: string;
   currentMedications: string;
@@ -39,7 +38,6 @@ const initialPetForm: PetFormState = {
   ageYears: "",
   ageMonths: "0",
   weightKg: "",
-  color: "",
   medicalHistory: "",
   allergies: "",
   currentMedications: "",
@@ -56,7 +54,7 @@ export function Book() {
   const locationHref = doctorWhatsAppLink("Hi Dr. Sarkar, sharing my location for the home visit.");
 
   const [symptoms, setSymptoms] = useState("");
-  const [homeVisitRequired, setHomeVisitRequired] = useState(false);
+  const [homeVisitRequired, setHomeVisitRequired] = useState<boolean | null>(null);
   const [homeVisitAddress, setHomeVisitAddress] = useState("");
 
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +95,9 @@ export function Book() {
               ? "Please select your pet's sex."
               : !symptoms.trim()
                 ? "Please describe the main problem."
-                : null;
+                : homeVisitRequired === null
+                  ? "Please choose whether your pet needs a home visit."
+                  : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -123,7 +123,6 @@ export function Book() {
         gender: pet.gender,
         date_of_birth: dateOfBirthFromAge(ageYears, ageMonths),
         weight_kg: pet.weightKg || undefined,
-        color: pet.color.trim() || undefined,
         medical_history: pet.medicalHistory.trim() || undefined,
         allergies: pet.allergies.trim() || undefined,
         current_medications: pet.currentMedications.trim() || undefined,
@@ -132,7 +131,7 @@ export function Book() {
       const appointment = await api.createAppointment(token, {
         pet_id: createdPet.id,
         symptoms: symptoms.trim(),
-        home_visit_required: homeVisitRequired,
+        home_visit_required: homeVisitRequired === true,
         home_visit_address: homeVisitRequired ? homeVisitAddress.trim() || undefined : undefined,
         contact_name: ownerName.trim(),
         contact_phone: ownerPhone.trim(),
@@ -207,7 +206,7 @@ export function Book() {
                   setConfirmed(null);
                   setPet(initialPetForm);
                   setSymptoms("");
-                  setHomeVisitRequired(false);
+                  setHomeVisitRequired(null);
                   setHomeVisitAddress("");
                 }}
               >
@@ -271,6 +270,67 @@ export function Book() {
                     onChange={(e) => setOwnerPhone(e.target.value)}
                   />
                 </label>
+              </div>
+            </section>
+
+            {/* Home visit */}
+            <section className="rounded-2xl border border-border bg-white p-6">
+              <h2 className="text-lg font-semibold text-ink">Home visit</h2>
+              <p className="mt-1 text-sm text-muted">Choose Yes if you'd like Dr. Sarkar to visit your home.</p>
+
+              <div className="mt-5 flex flex-col gap-5">
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-2 text-sm font-semibold text-ink">Does your pet need a home visit?</legend>
+                  <div className="flex gap-3">
+                    {[
+                      { label: "No", value: false },
+                      { label: "Yes", value: true },
+                    ].map((option) => (
+                      <label
+                        key={option.label}
+                        className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-base font-medium sm:flex-none sm:px-8 ${
+                          homeVisitRequired === option.value ? "border-ink bg-ink text-white" : "border-border bg-white text-ink hover:border-ink"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="home-visit"
+                          className="sr-only"
+                          checked={homeVisitRequired === option.value}
+                          onChange={() => setHomeVisitRequired(option.value)}
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                {homeVisitRequired && (
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-ink">Address for the home visit (optional)</span>
+                    <textarea
+                      rows={3}
+                      className={textareaClass}
+                      placeholder="House / flat, street, area, landmark, city, PIN code"
+                      value={homeVisitAddress}
+                      onChange={(e) => setHomeVisitAddress(e.target.value)}
+                    />
+                    {locationHref && (
+                      <span className="text-sm text-muted">
+                        Or{" "}
+                        <a
+                          href={locationHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-[#128C7E] hover:underline"
+                        >
+                          share your location with Dr. Sarkar on WhatsApp
+                        </a>
+                        .
+                      </span>
+                    )}
+                  </label>
+                )}
               </div>
             </section>
 
@@ -386,16 +446,6 @@ export function Book() {
                     onChange={(e) => updatePetField("weightKg", e.target.value)}
                   />
                 </label>
-
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="text-sm font-semibold text-ink">Color / markings (optional)</span>
-                  <input
-                    className={inputClass}
-                    placeholder="e.g. Brown with white patch"
-                    value={pet.color}
-                    onChange={(e) => updatePetField("color", e.target.value)}
-                  />
-                </label>
               </div>
             </section>
 
@@ -430,59 +480,6 @@ export function Book() {
                     onChange={(e) => setSymptoms(e.target.value)}
                   />
                 </label>
-
-                <fieldset className="flex flex-col gap-2">
-                  <legend className="mb-2 text-sm font-semibold text-ink">Require home visit?</legend>
-                  <div className="flex gap-3">
-                    {[
-                      { label: "No", value: false },
-                      { label: "Yes", value: true },
-                    ].map((option) => (
-                      <label
-                        key={option.label}
-                        className={`flex h-12 flex-1 cursor-pointer items-center justify-center rounded-lg border text-base font-medium sm:flex-none sm:px-8 ${
-                          homeVisitRequired === option.value ? "border-ink bg-ink text-white" : "border-border bg-white text-ink hover:border-ink"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="home-visit"
-                          className="sr-only"
-                          checked={homeVisitRequired === option.value}
-                          onChange={() => setHomeVisitRequired(option.value)}
-                        />
-                        {option.label}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-
-                {homeVisitRequired && (
-                  <label className="flex flex-col gap-2">
-                    <span className="text-sm font-semibold text-ink">Address for the home visit (optional)</span>
-                    <textarea
-                      rows={3}
-                      className={textareaClass}
-                      placeholder="House / flat, street, area, landmark, city, PIN code"
-                      value={homeVisitAddress}
-                      onChange={(e) => setHomeVisitAddress(e.target.value)}
-                    />
-                    {locationHref && (
-                      <span className="text-sm text-muted">
-                        Or{" "}
-                        <a
-                          href={locationHref}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-semibold text-[#128C7E] hover:underline"
-                        >
-                          share your location with Dr. Sarkar on WhatsApp
-                        </a>
-                        .
-                      </span>
-                    )}
-                  </label>
-                )}
 
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Medical history (optional)</span>
