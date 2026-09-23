@@ -116,6 +116,30 @@ Restart the backend (and frontend, for `.env.local`) after changing these.
   run `pg_ctl -D db stop` from the project folder.
 - **Backup:** `pg_dump -p 5433 vet_online_consultancy > backup.sql`.
 
+### Viewing it in pgAdmin
+
+1. Open pgAdmin 4 and right-click **Servers → Register → Server…**
+2. **General** tab: give it a name, e.g. `Vet consultancy (project db)`.
+3. **Connection** tab:
+
+   | Field | Value |
+   |---|---|
+   | Host name/address | `localhost` |
+   | Port | `5433` |
+   | Maintenance database | `postgres` |
+   | Username | your macOS username |
+   | Password | *(leave empty)* |
+
+4. Click **Save**, then open **Databases → vet_online_consultancy → Schemas → public → Tables**.
+5. Right-click a table → **View/Edit Data → All Rows**:
+   - `appointments`: each request (main problem, home visit and address, status, contact name and WhatsApp number)
+   - `pets`: the pet and health details from each request
+   - `users`: owner accounts and Dr. Sarkar
+
+If pgAdmin can't connect, the database server isn't running: start the backend once, or run
+`pg_ctl -D db start` from the project folder. Edits in pgAdmin are permanent and skip the app's checks, so
+use it to look rather than change data; **Download Excel** on `/admin` is the safest way to get a copy.
+
 ## Troubleshooting
 
 | Problem | Fix |
