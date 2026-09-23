@@ -46,7 +46,7 @@ class GoogleAuthRequest(BaseModel):
 
 
 class PetCreateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=200)
+    name: str | None = Field(default=None, max_length=200)
     species: str = Field(min_length=1, max_length=100)
     breed: str | None = Field(default=None, max_length=100)
     gender: PetGender = PetGender.UNKNOWN
@@ -56,6 +56,7 @@ class PetCreateRequest(BaseModel):
     allergies: str | None = None
     existing_conditions: str | None = None
     current_medications: str | None = None
+    medical_history: str | None = None
 
 
 class PetPhotoOut(BaseModel):
@@ -68,7 +69,7 @@ class PetPhotoOut(BaseModel):
 
 class PetOut(BaseModel):
     id: uuid.UUID
-    name: str
+    name: str | None
     species: str
     breed: str | None
     gender: PetGender
@@ -78,6 +79,7 @@ class PetOut(BaseModel):
     allergies: str | None
     existing_conditions: str | None
     current_medications: str | None
+    medical_history: str | None
     photos: list[PetPhotoOut]
     created_at: datetime
 
@@ -89,16 +91,11 @@ class PetOut(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class SlotOut(BaseModel):
-    start: datetime
-    end: datetime
-    available: bool
-
-
 class AppointmentCreateRequest(BaseModel):
     pet_id: uuid.UUID
-    scheduled_start: datetime
-    symptoms: str | None = None
+    symptoms: str = Field(min_length=1, max_length=2000)
+    contact_name: str = Field(min_length=1, max_length=200)
+    contact_phone: str = Field(min_length=7, max_length=30)
 
 
 class AppointmentOut(BaseModel):
@@ -108,9 +105,11 @@ class AppointmentOut(BaseModel):
     duration_minutes: int
     price_at_booking: Decimal
     currency: str
-    scheduled_start: datetime
-    scheduled_end: datetime
+    scheduled_start: datetime | None
+    scheduled_end: datetime | None
     symptoms: str | None
+    contact_name: str | None
+    contact_phone: str | None
     status: AppointmentStatus
     confirmed_at: datetime | None
     cancellation_reason: str | None

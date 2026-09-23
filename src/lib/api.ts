@@ -23,7 +23,7 @@ export interface PetPhoto {
 
 export interface Pet {
   id: string;
-  name: string;
+  name: string | null;
   species: string;
   breed: string | null;
   gender: PetGender;
@@ -33,14 +33,9 @@ export interface Pet {
   allergies: string | null;
   existing_conditions: string | null;
   current_medications: string | null;
+  medical_history: string | null;
   photos: PetPhoto[];
   created_at: string;
-}
-
-export interface Slot {
-  start: string;
-  end: string;
-  available: boolean;
 }
 
 export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
@@ -52,9 +47,11 @@ export interface Appointment {
   duration_minutes: number;
   price_at_booking: string;
   currency: string;
-  scheduled_start: string;
-  scheduled_end: string;
+  scheduled_start: string | null;
+  scheduled_end: string | null;
   symptoms: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
   status: AppointmentStatus;
   confirmed_at: string | null;
   cancellation_reason: string | null;
@@ -128,7 +125,7 @@ export function fetchMe(token: string) {
 }
 
 export interface PetInput {
-  name: string;
+  name?: string;
   species: string;
   breed?: string;
   gender?: PetGender;
@@ -138,6 +135,7 @@ export interface PetInput {
   allergies?: string;
   existing_conditions?: string;
   current_medications?: string;
+  medical_history?: string;
 }
 
 export function createPet(token: string, input: PetInput) {
@@ -165,13 +163,14 @@ export function deletePetPhoto(token: string, petId: string, photoId: string) {
   });
 }
 
-export function getSlots(token: string, bookingDate: string) {
-  return request<Slot[]>(`/appointments/slots?booking_date=${bookingDate}`, {
-    headers: authHeaders(token),
-  });
+export interface AppointmentInput {
+  pet_id: string;
+  symptoms: string;
+  contact_name: string;
+  contact_phone: string;
 }
 
-export function createAppointment(token: string, input: { pet_id: string; scheduled_start: string; symptoms?: string }) {
+export function createAppointment(token: string, input: AppointmentInput) {
   return request<Appointment>("/appointments", {
     method: "POST",
     headers: authHeaders(token),

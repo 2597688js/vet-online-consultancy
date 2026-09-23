@@ -6,6 +6,7 @@ import { ChatIcon, PawIcon } from "../components/icons";
 import * as api from "../lib/api";
 import { ApiError } from "../lib/api";
 import { buildWhatsAppLink } from "../lib/whatsapp";
+import { SEX_LABELS, formatAge, petLabel } from "../lib/pet";
 
 const STATUS_FILTERS: { label: string; value: api.AppointmentStatus | "ALL" }[] = [
   { label: "Pending", value: "PENDING" },
@@ -135,7 +136,7 @@ export function AdminDashboard() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h2 className="text-lg font-semibold text-ink">
-                          {appointment.pet.name} <span className="font-normal text-muted">({appointment.pet.species})</span>
+                          {petLabel(appointment.pet)} <span className="font-normal text-muted">({appointment.pet.species})</span>
                         </h2>
                         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGE_CLASSES[appointment.status]}`}>
                           {appointment.status}
@@ -144,8 +145,29 @@ export function AdminDashboard() {
                       <p className="mt-1 text-sm text-body">
                         {appointment.owner_name} · {appointment.owner_phone ?? "no phone on file"}
                       </p>
-                      <p className="mt-1 text-sm text-muted">{formatDateTime(appointment.scheduled_start)}</p>
-                      {appointment.symptoms && <p className="mt-2 text-sm text-body">"{appointment.symptoms}"</p>}
+                      <p className="mt-1 text-sm text-muted">
+                        {appointment.scheduled_start
+                        ? formatDateTime(appointment.scheduled_start)
+                        : `Requested ${formatDateTime(appointment.created_at)}`}
+                      </p>
+                      <p className="mt-1 text-sm text-muted">
+                        {[
+                          appointment.pet.breed,
+                          SEX_LABELS[appointment.pet.gender],
+                          formatAge(appointment.pet.date_of_birth),
+                          appointment.pet.weight_kg && `${Number(appointment.pet.weight_kg)} kg`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                      {appointment.symptoms && (
+                        <p className="mt-2 text-sm text-body">
+                          <span className="font-semibold text-ink">Main problem:</span> {appointment.symptoms}
+                        </p>
+                      )}
+                      <PetHealthDetail label="Medical history" value={appointment.pet.medical_history ?? appointment.pet.existing_conditions} />
+                      <PetHealthDetail label="Medications" value={appointment.pet.current_medications} />
+                      <PetHealthDetail label="Allergies" value={appointment.pet.allergies} />
                       {appointment.status === "CANCELLED" && appointment.cancellation_reason && (
                         <p className="mt-2 text-sm text-danger-600">Reason: {appointment.cancellation_reason}</p>
                       )}
@@ -220,5 +242,14 @@ export function AdminDashboard() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function PetHealthDetail({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return (
+    <p className="mt-1 text-sm text-body">
+      <span className="font-semibold text-ink">{label}:</span> {value}
+    </p>
   );
 }

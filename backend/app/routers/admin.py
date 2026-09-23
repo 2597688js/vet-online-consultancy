@@ -25,9 +25,9 @@ def _to_admin_out(appointment: Appointment) -> AppointmentAdminOut:
     return AppointmentAdminOut.model_validate(
         {
             **AppointmentOut.model_validate(appointment).model_dump(),
-            "owner_name": appointment.owner.full_name,
+            "owner_name": appointment.contact_name or appointment.owner.full_name,
             "owner_email": appointment.owner.email,
-            "owner_phone": appointment.owner.phone,
+            "owner_phone": appointment.contact_phone or appointment.owner.phone,
         }
     )
 
@@ -37,7 +37,7 @@ def list_admin_appointments(
     status_filter: AppointmentStatus | None = Query(default=None, alias="status"),
     db: Session = Depends(get_db),
 ) -> list[AppointmentAdminOut]:
-    query = db.query(Appointment).order_by(Appointment.scheduled_start.desc())
+    query = db.query(Appointment).order_by(Appointment.created_at.desc())
     if status_filter is not None:
         query = query.filter(Appointment.status == status_filter)
     return [_to_admin_out(appointment) for appointment in query.all()]

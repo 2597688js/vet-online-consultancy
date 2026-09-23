@@ -55,69 +55,6 @@ const stats = [
   { value: "25+", label: "Pet & large-animal post-mortems" },
 ];
 
-const faqs = [
-  {
-    q: "How does an online consultation work?",
-    a: "Book a slot, choose a time, and join Dr. Sarkar over video, audio, or chat from the browser at your scheduled time. No app download needed.",
-  },
-  {
-    q: "Which pets can I book a consultation for?",
-    a: "Dogs, cats, and other companion animals. For large or farm animals, please contact us directly so we can advise on the best way to help.",
-  },
-  {
-    q: "Do I need to create an account to book?",
-    a: "Yes. Registering takes under a minute and lets you keep a record of your pet's profile, past consultations, and prescriptions in one place.",
-  },
-  {
-    q: "How much does a consultation cost?",
-    a: "The consultation fee is shown at the time of booking and depends on the type of consultation you choose (video, audio, or chat).",
-  },
-  {
-    q: "What should I have ready before the consultation?",
-    a: "Have your pet nearby if possible, along with any recent symptoms, medication history, or prior reports you can describe or show on camera.",
-  },
-  {
-    q: "Can Dr. Sarkar prescribe medication online?",
-    a: "Yes, where appropriate for the condition. If an in-person examination, diagnostic test, or procedure is needed, you'll be advised to visit a clinic.",
-  },
-  {
-    q: "What if my pet needs emergency care?",
-    a: "Online consultation is not a substitute for emergency care. If your pet is in a life-threatening situation, please go to your nearest emergency animal hospital immediately.",
-  },
-  {
-    q: "Can I reschedule or cancel a booked appointment?",
-    a: "Yes, you can manage your upcoming appointments from your account. We recommend rescheduling as early as possible so the slot can be offered to another pet parent.",
-  },
-  {
-    q: "What happens if I miss my appointment?",
-    a: "If you don't join within a few minutes of the scheduled time, the consultation may be marked as missed. You're welcome to book a new slot.",
-  },
-  {
-    q: "Is there a follow-up after the consultation?",
-    a: "Dr. Sarkar may recommend a follow-up consultation to track your pet's progress, especially for ongoing conditions or after starting a new treatment.",
-  },
-  {
-    q: "What languages does Dr. Sarkar consult in?",
-    a: "Consultations are available in Assamese, English, Hindi, and Bengali.",
-  },
-  {
-    q: "What are the available consultation hours?",
-    a: "Slots are generally open between 12:00 PM and 9:00 PM. Exact availability for a given day is shown when you book.",
-  },
-  {
-    q: "Is my pet's information kept private?",
-    a: "Yes. Your account details and your pet's medical information are used only to provide and improve your consultations, and are not shared with third parties.",
-  },
-  {
-    q: "How do I pay for a consultation?",
-    a: "Payment details and options are presented during the booking flow before your appointment is confirmed.",
-  },
-  {
-    q: "Who do I contact if I have an issue with my booking?",
-    a: "Reach out through the Contact link in the footer and we'll help resolve it as quickly as possible.",
-  },
-];
-
 export function Home() {
   const { user } = useAuth();
   const bookHref = user ? "/book" : "/login";
@@ -253,35 +190,6 @@ export function Home() {
               If your pet is experiencing a life-threatening emergency, contact your nearest emergency animal
               hospital immediately.
             </p>
-          </div>
-        </section>
-
-        {/* FAQs */}
-        <section id="faqs" className="scroll-mt-[88px] bg-white py-20">
-          <div className="mx-auto max-w-3xl px-6 lg:px-20">
-            <div className="text-center">
-              <span className="text-xs font-semibold uppercase tracking-wide text-primary-600">FAQs</span>
-              <h2 className="mt-3 text-3xl font-bold text-ink">Frequently asked questions</h2>
-              <p className="mt-3 text-base text-body">
-                Everything you need to know before booking an online consultation.
-              </p>
-            </div>
-            <div className="mt-10 space-y-3">
-              {faqs.map((faq) => (
-                <details
-                  key={faq.q}
-                  className="group rounded-2xl border border-border px-5 py-4 open:bg-primary-50/40"
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-ink marker:content-none">
-                    {faq.q}
-                    <span className="shrink-0 text-lg leading-none text-primary-600 transition-transform group-open:rotate-45">
-                      +
-                    </span>
-                  </summary>
-                  <p className="mt-3 text-sm text-body">{faq.a}</p>
-                </details>
-              ))}
-            </div>
           </div>
         </section>
       </main>

@@ -111,7 +111,7 @@ class Pet(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
     owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), index=True, nullable=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
     species: Mapped[str] = mapped_column(String, index=True, nullable=False)
     breed: Mapped[str | None] = mapped_column(String, nullable=True)
     gender: Mapped[PetGender] = mapped_column(pg_enum(PetGender, "pet_gender"), default=PetGender.UNKNOWN, nullable=False)
@@ -121,6 +121,7 @@ class Pet(Base):
     allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
     existing_conditions: Mapped[str | None] = mapped_column(Text, nullable=True)
     current_medications: Mapped[str | None] = mapped_column(Text, nullable=True)
+    medical_history: Mapped[str | None] = mapped_column(Text, nullable=True)
     photo_url: Mapped[str | None] = mapped_column(String, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
@@ -205,7 +206,7 @@ class ConsultationOffering(Base):
 
 
 # ---------------------------------------------------------------------------
-# Appointment — booking that links pet + doctor + consultation type + slot
+# Appointment — consultation request linking pet + doctor + consultation type
 # ---------------------------------------------------------------------------
 
 
@@ -236,10 +237,14 @@ class Appointment(Base):
     price_at_booking: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String, default="USD", nullable=False)
 
-    scheduled_start: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    scheduled_end: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    # Owners no longer pick a time; the doctor contacts them. Kept for bookings made with a slot.
+    scheduled_start: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    scheduled_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     symptoms: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Contact details given on the booking form; may differ from the account's name/phone.
+    contact_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String, nullable=True)
 
     status: Mapped[AppointmentStatus] = mapped_column(
         pg_enum(AppointmentStatus, "appointment_status"), default=AppointmentStatus.PENDING, index=True, nullable=False

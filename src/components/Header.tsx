@@ -7,7 +7,6 @@ import { useAuth } from "../context/AuthContext";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/#about" },
-  { label: "FAQs", href: "/#faqs" },
 ];
 
 function greetingName(fullName: string): string {

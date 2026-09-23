@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Button } from "../components/Button";
@@ -7,40 +7,28 @@ import { CameraIcon, CheckCircleIcon, PawIcon, XIcon } from "../components/icons
 import { useAuth } from "../context/AuthContext";
 import * as api from "../lib/api";
 import { ApiError } from "../lib/api";
+import { SEX_LABELS, dateOfBirthFromAge, petLabel } from "../lib/pet";
 
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_MB = 5;
-const BOOKING_HORIZON_DAYS = 30;
+const SPECIES_SUGGESTIONS = ["Dog", "Cat", "Bird", "Rabbit", "Guinea pig", "Hamster", "Fish", "Turtle", "Cow", "Goat"];
 
-function todayInputValue(): string {
-  const d = new Date();
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 10);
-}
-
-function maxDateInputValue(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + BOOKING_HORIZON_DAYS);
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 10);
-}
-
-function formatSlotTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
+const inputClass =
+  "h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink";
+const textareaClass =
+  "w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink";
 
 interface PetFormState {
   name: string;
   species: string;
   breed: string;
-  gender: api.PetGender;
-  dateOfBirth: string;
+  gender: api.PetGender | "";
+  ageYears: string;
+  ageMonths: string;
   weightKg: string;
   color: string;
+  medicalHistory: string;
   allergies: string;
-  existingConditions: string;
   currentMedications: string;
 }
 
@@ -48,12 +36,13 @@ const initialPetForm: PetFormState = {
   name: "",
   species: "",
   breed: "",
-  gender: "UNKNOWN",
-  dateOfBirth: "",
+  gender: "",
+  ageYears: "",
+  ageMonths: "0",
   weightKg: "",
   color: "",
+  medicalHistory: "",
   allergies: "",
-  existingConditions: "",
   currentMedications: "",
 };
 
@@ -66,16 +55,12 @@ export function Book() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
   const [pet, setPet] = useState<PetFormState>(initialPetForm);
   const [photos, setPhotos] = useState<PhotoDraft[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [date, setDate] = useState(todayInputValue());
-  const [slots, setSlots] = useState<api.Slot[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
-  const [slotsError, setSlotsError] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<api.Slot | null>(null);
 
   const [symptoms, setSymptoms] = useState("");
 
@@ -90,17 +75,10 @@ export function Book() {
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    const token = api.getToken();
-    if (!token || !date) return;
-    setSlotsLoading(true);
-    setSlotsError(null);
-    setSelectedSlot(null);
-    api
-      .getSlots(token, date)
-      .then(setSlots)
-      .catch((err) => setSlotsError(err instanceof ApiError ? err.message : "Couldn't load available slots."))
-      .finally(() => setSlotsLoading(false));
-  }, [date]);
+    if (!user) return;
+    setOwnerName((prev) => prev || user.full_name);
+    setOwnerPhone((prev) => prev || user.phone || "");
+  }, [user]);
 
   useEffect(() => {
     return () => {
@@ -108,9 +86,6 @@ export function Book() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const afternoonSlots = useMemo(() => slots.filter((s) => new Date(s.start).getHours() < 17), [slots]);
-  const eveningSlots = useMemo(() => slots.filter((s) => new Date(s.start).getHours() >= 17), [slots]);
 
   function updatePetField<K extends keyof PetFormState>(field: K, value: PetFormState[K]) {
     setPet((prev) => ({ ...prev, [field]: value }));
@@ -154,22 +129,34 @@ export function Book() {
     });
   }
 
-  const canSubmit = pet.name.trim().length > 0 && pet.species.trim().length > 0 && photos.length > 0 && selectedSlot !== null;
+  const ageYears = Number(pet.ageYears);
+  const ageMonths = Number(pet.ageMonths);
+  const ageValid = pet.ageYears !== "" && ageYears >= 0 && (ageYears > 0 || ageMonths > 0);
+
+  const missingField = !ownerName.trim()
+    ? "Please enter the owner's name."
+    : ownerPhone.trim().length < 7
+      ? "Please enter a valid contact number."
+      : !pet.species.trim()
+        ? "Please enter your pet's species."
+        : !pet.breed.trim()
+          ? "Please enter your pet's breed (or \"Mixed\" / \"Not sure\")."
+          : !ageValid
+            ? "Please enter your pet's age."
+            : !pet.gender
+              ? "Please select your pet's sex."
+              : !symptoms.trim()
+                ? "Please describe the main problem."
+                : photos.length === 0
+                  ? "Please upload at least one photo of your pet."
+                  : null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!pet.name.trim() || !pet.species.trim()) {
-      setError("Please fill in your pet's name and species.");
-      return;
-    }
-    if (photos.length === 0) {
-      setError("Please upload at least one photo of your pet.");
-      return;
-    }
-    if (!selectedSlot) {
-      setError("Please select an appointment slot.");
+    if (missingField || !pet.gender) {
+      setError(missingField);
       return;
     }
 
@@ -182,15 +169,15 @@ export function Book() {
     setSubmitting(true);
     try {
       const createdPet = await api.createPet(token, {
-        name: pet.name.trim(),
+        name: pet.name.trim() || undefined,
         species: pet.species.trim(),
-        breed: pet.breed.trim() || undefined,
+        breed: pet.breed.trim(),
         gender: pet.gender,
-        date_of_birth: pet.dateOfBirth || undefined,
+        date_of_birth: dateOfBirthFromAge(ageYears, ageMonths),
         weight_kg: pet.weightKg || undefined,
         color: pet.color.trim() || undefined,
+        medical_history: pet.medicalHistory.trim() || undefined,
         allergies: pet.allergies.trim() || undefined,
-        existing_conditions: pet.existingConditions.trim() || undefined,
         current_medications: pet.currentMedications.trim() || undefined,
       });
 
@@ -202,8 +189,9 @@ export function Book() {
 
       const appointment = await api.createAppointment(token, {
         pet_id: createdPet.id,
-        scheduled_start: selectedSlot.start,
-        symptoms: symptoms.trim() || undefined,
+        symptoms: symptoms.trim(),
+        contact_name: ownerName.trim(),
+        contact_phone: ownerPhone.trim(),
       });
 
       setConfirmed(appointment);
@@ -233,35 +221,21 @@ export function Book() {
         <main className="flex flex-1 items-center justify-center px-6 py-20">
           <div className="w-full max-w-lg rounded-2xl border border-border bg-white p-10 text-center">
             <CheckCircleIcon className="mx-auto h-12 w-12 text-primary-600" />
-            <h1 className="mt-5 text-2xl font-bold text-ink">Consultation booked</h1>
+            <h1 className="mt-5 text-2xl font-bold text-ink">Consultation request sent</h1>
             <p className="mt-2 text-sm text-muted">
-              We've booked {confirmed.pet.name}'s consultation with Dr. Nituparna Sarkar. Once confirmed, she'll reach
-              out to you on WhatsApp video at your scheduled time for the consultation.
+              We've booked {confirmed.pet.name ? `${confirmed.pet.name}'s` : "your pet's"} consultation request. Dr. Nituparna Sarkar will contact you
+              on WhatsApp at {confirmed.contact_phone} to arrange the consultation.
             </p>
             <div className="mt-6 rounded-xl bg-bg p-5 text-left text-sm">
               <div className="flex justify-between py-1">
                 <span className="text-muted">Pet</span>
-                <span className="font-semibold text-ink">{confirmed.pet.name}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-muted">Date</span>
                 <span className="font-semibold text-ink">
-                  {new Date(confirmed.scheduled_start).toLocaleDateString([], {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-muted">Time</span>
-                <span className="font-semibold text-ink">
-                  {formatSlotTime(confirmed.scheduled_start)} – {formatSlotTime(confirmed.scheduled_end)}
+                  {petLabel(confirmed.pet)} ({confirmed.pet.species})
                 </span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-muted">Status</span>
-                <span className="font-semibold text-ink">Pending confirmation</span>
+                <span className="font-semibold text-ink">Waiting for Dr. Sarkar</span>
               </div>
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -279,7 +253,6 @@ export function Book() {
                   setPet(initialPetForm);
                   setPhotos([]);
                   setSymptoms("");
-                  setSelectedSlot(null);
                 }}
               >
                 Book another
@@ -310,6 +283,41 @@ export function Book() {
           <form className="mt-8 flex flex-col gap-8" onSubmit={handleSubmit}>
             {error && <p className="rounded-lg bg-danger-50 px-4 py-3 text-sm font-medium text-danger-600">{error}</p>}
 
+            {/* Owner details */}
+            <section className="rounded-2xl border border-border bg-white p-6">
+              <h2 className="text-lg font-semibold text-ink">Owner details</h2>
+              <p className="mt-1 text-sm text-muted">Dr. Sarkar will call this number on WhatsApp video.</p>
+
+              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-ink">Owner name</span>
+                  <input
+                    className={inputClass}
+                    placeholder="e.g. Priya Das"
+                    autoComplete="name"
+                    required
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                  />
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-ink">Contact number (WhatsApp)</span>
+                  <input
+                    type="tel"
+                    className={inputClass}
+                    placeholder="e.g. +91 98765 43210"
+                    autoComplete="tel"
+                    required
+                    minLength={7}
+                    maxLength={30}
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                  />
+                </label>
+              </div>
+            </section>
+
             {/* Pet details */}
             <section className="rounded-2xl border border-border bg-white p-6">
               <h2 className="text-lg font-semibold text-ink">Pet details</h2>
@@ -317,11 +325,10 @@ export function Book() {
 
               <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink">Pet name</span>
+                  <span className="text-sm font-semibold text-ink">Pet name (optional)</span>
                   <input
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    className={inputClass}
                     placeholder="e.g. Bruno"
-                    required
                     value={pet.name}
                     onChange={(e) => updatePetField("name", e.target.value)}
                   />
@@ -330,47 +337,86 @@ export function Book() {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Species</span>
                   <input
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    className={inputClass}
                     placeholder="e.g. Dog, Cat"
+                    list="species-suggestions"
                     required
                     value={pet.species}
                     onChange={(e) => updatePetField("species", e.target.value)}
                   />
+                  <datalist id="species-suggestions">
+                    {SPECIES_SUGGESTIONS.map((species) => (
+                      <option key={species} value={species} />
+                    ))}
+                  </datalist>
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink">Breed (optional)</span>
+                  <span className="text-sm font-semibold text-ink">Breed</span>
                   <input
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                    placeholder="e.g. Labrador"
+                    className={inputClass}
+                    placeholder="e.g. Labrador, or Mixed / Not sure"
+                    required
                     value={pet.breed}
                     onChange={(e) => updatePetField("breed", e.target.value)}
                   />
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink">Gender</span>
+                  <span className="text-sm font-semibold text-ink">Sex</span>
                   <select
                     className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    required
                     value={pet.gender}
-                    onChange={(e) => updatePetField("gender", e.target.value as api.PetGender)}
+                    onChange={(e) => updatePetField("gender", e.target.value as api.PetGender | "")}
                   >
-                    <option value="UNKNOWN">Unknown</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
+                    <option value="" disabled>
+                      Select sex
+                    </option>
+                    {(["MALE", "FEMALE", "UNKNOWN"] as const).map((gender) => (
+                      <option key={gender} value={gender}>
+                        {SEX_LABELS[gender]}
+                      </option>
+                    ))}
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-2">
-                  <span className="text-sm font-semibold text-ink">Date of birth (optional)</span>
-                  <input
-                    type="date"
-                    max={todayInputValue()}
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                    value={pet.dateOfBirth}
-                    onChange={(e) => updatePetField("dateOfBirth", e.target.value)}
-                  />
-                </label>
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="mb-2 text-sm font-semibold text-ink">Age</legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="relative">
+                      <span className="sr-only">Years</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="50"
+                        step="1"
+                        className={`${inputClass} pr-14`}
+                        placeholder="0"
+                        required
+                        value={pet.ageYears}
+                        onChange={(e) => updatePetField("ageYears", e.target.value)}
+                      />
+                      <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted">
+                        years
+                      </span>
+                    </label>
+                    <label>
+                      <span className="sr-only">Months</span>
+                      <select
+                        className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                        value={pet.ageMonths}
+                        onChange={(e) => updatePetField("ageMonths", e.target.value)}
+                      >
+                        {Array.from({ length: 12 }, (_, m) => (
+                          <option key={m} value={String(m)}>
+                            {m} {m === 1 ? "month" : "months"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
 
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Weight in kg (optional)</span>
@@ -378,7 +424,7 @@ export function Book() {
                     type="number"
                     min="0"
                     step="0.1"
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    className={inputClass}
                     placeholder="e.g. 12.5"
                     value={pet.weightKg}
                     onChange={(e) => updatePetField("weightKg", e.target.value)}
@@ -388,40 +434,61 @@ export function Book() {
                 <label className="flex flex-col gap-2 sm:col-span-2">
                   <span className="text-sm font-semibold text-ink">Color / markings (optional)</span>
                   <input
-                    className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    className={inputClass}
                     placeholder="e.g. Brown with white patch"
                     value={pet.color}
                     onChange={(e) => updatePetField("color", e.target.value)}
                   />
                 </label>
+              </div>
+            </section>
 
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="text-sm font-semibold text-ink">Allergies (optional)</span>
+            {/* Health */}
+            <section className="rounded-2xl border border-border bg-white p-6">
+              <h2 className="text-lg font-semibold text-ink">Health information</h2>
+              <p className="mt-1 text-sm text-muted">The more Dr. Sarkar knows beforehand, the more useful the call.</p>
+
+              <div className="mt-5 flex flex-col gap-5">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-ink">Main problem</span>
                   <textarea
-                    rows={2}
-                    className="w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                    value={pet.allergies}
-                    onChange={(e) => updatePetField("allergies", e.target.value)}
+                    rows={3}
+                    className={textareaClass}
+                    placeholder="What's wrong, since when, and any changes in eating, drinking, or behaviour…"
+                    required
+                    value={symptoms}
+                    onChange={(e) => setSymptoms(e.target.value)}
                   />
                 </label>
 
-                <label className="flex flex-col gap-2 sm:col-span-2">
-                  <span className="text-sm font-semibold text-ink">Existing conditions (optional)</span>
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-ink">Medical history (optional)</span>
                   <textarea
-                    rows={2}
-                    className="w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                    value={pet.existingConditions}
-                    onChange={(e) => updatePetField("existingConditions", e.target.value)}
+                    rows={3}
+                    className={textareaClass}
+                    placeholder="Past illnesses, surgeries, vaccinations, deworming, neutering…"
+                    value={pet.medicalHistory}
+                    onChange={(e) => updatePetField("medicalHistory", e.target.value)}
                   />
                 </label>
 
-                <label className="flex flex-col gap-2 sm:col-span-2">
+                <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Current medications (optional)</span>
                   <textarea
                     rows={2}
-                    className="w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
+                    className={textareaClass}
                     value={pet.currentMedications}
                     onChange={(e) => updatePetField("currentMedications", e.target.value)}
+                  />
+                </label>
+
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm font-semibold text-ink">Allergies (optional)</span>
+                  <textarea
+                    rows={2}
+                    className={textareaClass}
+                    value={pet.allergies}
+                    onChange={(e) => updatePetField("allergies", e.target.value)}
                   />
                 </label>
               </div>
@@ -473,57 +540,9 @@ export function Book() {
               />
             </section>
 
-            {/* Slot picker */}
-            <section className="rounded-2xl border border-border bg-white p-6">
-              <h2 className="text-lg font-semibold text-ink">Pick a slot</h2>
-              <p className="mt-1 text-sm text-muted">Available every day, 12:00 PM – 9:00 PM, in 30-minute slots.</p>
-
-              <label className="mt-4 flex flex-col gap-2 sm:w-64">
-                <span className="text-sm font-semibold text-ink">Date</span>
-                <input
-                  type="date"
-                  min={todayInputValue()}
-                  max={maxDateInputValue()}
-                  className="h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-ink outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </label>
-
-              <div className="mt-5">
-                {slotsLoading && <p className="text-sm text-muted">Loading slots…</p>}
-                {slotsError && <p className="text-sm font-medium text-danger-600">{slotsError}</p>}
-                {!slotsLoading && !slotsError && slots.length > 0 && (
-                  <div className="flex flex-col gap-5">
-                    <SlotGroup label="Afternoon" slots={afternoonSlots} selectedSlot={selectedSlot} onSelect={setSelectedSlot} />
-                    <SlotGroup label="Evening" slots={eveningSlots} selectedSlot={selectedSlot} onSelect={setSelectedSlot} />
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* Reason for visit */}
-            <section className="rounded-2xl border border-border bg-white p-6">
-              <h2 className="text-lg font-semibold text-ink">Reason for visit (optional)</h2>
-              <textarea
-                rows={3}
-                className="mt-4 w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-ink placeholder-placeholder outline-none focus:border-ink focus:ring-1 focus:ring-ink"
-                placeholder="Briefly describe what's going on with your pet…"
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-              />
-            </section>
-
-            <Button type="submit" variant="primary" className="w-full" disabled={!canSubmit || submitting}>
-              {submitting ? "Booking…" : "Confirm booking"}
+            <Button type="submit" variant="primary" className="w-full" disabled={submitting}>
+              {submitting ? "Submitting…" : "Submit consultation request"}
             </Button>
-
-            <p className="text-center text-sm text-muted">
-              Need help?{" "}
-              <Link to="/#faqs" className="font-semibold text-primary-600 hover:text-primary-700">
-                Check our FAQs
-              </Link>
-            </p>
           </form>
         </div>
       </main>
@@ -532,43 +551,3 @@ export function Book() {
   );
 }
 
-function SlotGroup({
-  label,
-  slots,
-  selectedSlot,
-  onSelect,
-}: {
-  label: string;
-  slots: api.Slot[];
-  selectedSlot: api.Slot | null;
-  onSelect: (slot: api.Slot) => void;
-}) {
-  if (slots.length === 0) return null;
-  return (
-    <div>
-      <h3 className="text-sm font-semibold text-muted">{label}</h3>
-      <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {slots.map((slot) => {
-          const isSelected = selectedSlot?.start === slot.start;
-          return (
-            <button
-              key={slot.start}
-              type="button"
-              disabled={!slot.available}
-              onClick={() => onSelect(slot)}
-              className={`h-11 rounded-lg border text-sm font-medium transition-colors ${
-                isSelected
-                  ? "border-ink bg-ink text-white"
-                  : slot.available
-                    ? "border-border bg-white text-ink hover:border-ink"
-                    : "cursor-not-allowed border-border bg-gray-50 text-placeholder line-through"
-              }`}
-            >
-              {formatSlotTime(slot.start)}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

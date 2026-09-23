@@ -7,6 +7,7 @@ import { PawIcon } from "../components/icons";
 import { useAuth } from "../context/AuthContext";
 import * as api from "../lib/api";
 import { ApiError } from "../lib/api";
+import { petLabel } from "../lib/pet";
 
 const STATUS_BADGE_CLASSES: Record<api.AppointmentStatus, string> = {
   PENDING: "bg-amber-50 text-amber-700",
@@ -103,16 +104,20 @@ export function MyAppointments() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-lg font-semibold text-ink">
-                        {appointment.pet.name} <span className="font-normal text-muted">({appointment.pet.species})</span>
+                        {petLabel(appointment.pet)} <span className="font-normal text-muted">({appointment.pet.species})</span>
                       </h2>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGE_CLASSES[appointment.status]}`}>
                         {STATUS_LABELS[appointment.status]}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-muted">{formatDateTime(appointment.scheduled_start)}</p>
+                    <p className="mt-1 text-sm text-muted">
+                      {appointment.scheduled_start
+                      ? formatDateTime(appointment.scheduled_start)
+                      : `Requested ${formatDateTime(appointment.created_at)}`}
+                    </p>
                     {appointment.symptoms && <p className="mt-2 text-sm text-body">"{appointment.symptoms}"</p>}
                     {appointment.status === "CONFIRMED" && (
-                      <p className="mt-2 text-sm text-body">Dr. Sarkar will call you on WhatsApp video at your scheduled time.</p>
+                      <p className="mt-2 text-sm text-body">Dr. Sarkar will call you on WhatsApp video.</p>
                     )}
                     {appointment.status === "CANCELLED" && appointment.cancellation_reason && (
                       <p className="mt-2 text-sm text-danger-600">Cancelled — {appointment.cancellation_reason}</p>
