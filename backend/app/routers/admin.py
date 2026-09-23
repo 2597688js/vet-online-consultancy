@@ -8,14 +8,12 @@ from openpyxl.styles import Font
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Appointment, AppointmentStatus, PetGender
-from app.routers.appointments import get_solo_doctor
+from app.models import Appointment, AppointmentStatus, PetGender, User, UserRole
 from app.schemas import AppointmentAdminOut, AppointmentOut, AppointmentStatusUpdateRequest
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-# Single-doctor practice: admin endpoints intentionally don't filter by
-# doctor_profile_id. There's no admin login: the dashboard and these endpoints are open by design.
+# Single-doctor practice. There's no admin login: the dashboard and these endpoints are open by design.
 ALLOWED_TRANSITIONS: dict[AppointmentStatus, set[AppointmentStatus]] = {
     AppointmentStatus.PENDING: {AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED},
     AppointmentStatus.CONFIRMED: {AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED},
@@ -152,7 +150,8 @@ def update_appointment_status(
     elif payload.status == AppointmentStatus.CANCELLED:
         appointment.cancelled_at = now
         appointment.cancellation_reason = payload.cancellation_reason
-        appointment.cancelled_by_user_id = get_solo_doctor(db).user_id
+        doctor = db.query(User).filter(User.role == UserRole.ADMIN).order_by(User.created_at.asc()).first()
+        appointment.cancelled_by_user_id = doctor.id if doctor else None
 
     appointment.status = payload.status
     db.commit()

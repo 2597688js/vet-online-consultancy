@@ -9,10 +9,8 @@ from app.models import (
     Appointment,
     AppointmentStatus,
     ConsultationType,
-    DoctorProfile,
     Pet,
     User,
-    VerificationStatus,
 )
 from app.schemas import AppointmentCreateRequest, AppointmentOut
 
@@ -20,23 +18,6 @@ router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
 DEFAULT_DURATION_MINUTES = 30
 DEFAULT_CONSULTATION_TYPE = ConsultationType.VIDEO
-
-
-def get_solo_doctor(db: Session) -> DoctorProfile:
-    doctor = (
-        db.query(DoctorProfile)
-        .filter(
-            DoctorProfile.verification_status == VerificationStatus.VERIFIED,
-            DoctorProfile.is_accepting_appointments.is_(True),
-        )
-        .order_by(DoctorProfile.created_at.asc())
-        .first()
-    )
-    if doctor is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Booking is not available right now"
-        )
-    return doctor
 
 
 @router.post("", response_model=AppointmentOut, status_code=status.HTTP_201_CREATED)
@@ -49,8 +30,6 @@ def create_appointment(
     if pet is None or pet.deleted_at is not None or pet.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pet not found")
 
-    doctor = get_solo_doctor(db)
-
     # Optional even for home visits: owners can share their location on WhatsApp instead.
     home_visit_address = None
     if payload.home_visit_required:
@@ -60,7 +39,6 @@ def create_appointment(
     appointment = Appointment(
         pet_id=pet.id,
         owner_id=current_user.id,
-        doctor_profile_id=doctor.id,
         consultation_type=DEFAULT_CONSULTATION_TYPE,
         duration_minutes=DEFAULT_DURATION_MINUTES,
         price_at_booking=Decimal("0.00"),

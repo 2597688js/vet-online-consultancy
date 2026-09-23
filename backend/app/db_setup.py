@@ -1,4 +1,4 @@
-"""Startup tasks: start the project's Postgres, create the database if missing, run migrations, make sure the doctor exists."""
+"""Startup tasks: start the project's Postgres, create the database if missing, run migrations, make sure the doctor's account exists."""
 import logging
 import subprocess
 from pathlib import Path
@@ -10,7 +10,7 @@ from sqlalchemy.engine import make_url
 
 from app.config import BACKEND_DIR, settings
 from app.database import SessionLocal
-from app.models import DoctorProfile, User, UserRole, VerificationStatus
+from app.models import User, UserRole
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -66,29 +66,24 @@ def _create_database_if_missing() -> None:
 
 
 def _ensure_doctor() -> None:
-    """Bookings need the doctor's profile. Create it on first run; keep her email in sync with DOCTOR_EMAIL."""
+    """Create the doctor's account (role ADMIN) on first run; keep her email in sync with DOCTOR_EMAIL.
+
+    It's what reminder emails go to and who is recorded as cancelling a request.
+    """
     with SessionLocal() as db:
-        doctor = db.query(DoctorProfile).order_by(DoctorProfile.created_at.asc()).first()
+        doctor = db.query(User).filter(User.role == UserRole.ADMIN).order_by(User.created_at.asc()).first()
         if doctor is None:
-            user = User(
-                full_name=DOCTOR_NAME,
-                email=settings.doctor_email or "doctor@example.com",
-                role=UserRole.ADMIN,
-                is_active=True,
-            )
-            db.add(user)
-            db.flush()
             db.add(
-                DoctorProfile(
-                    user_id=user.id,
-                    specialty="General Veterinary Medicine",
-                    verification_status=VerificationStatus.VERIFIED,
-                    is_accepting_appointments=True,
+                User(
+                    full_name=DOCTOR_NAME,
+                    email=settings.doctor_email or "doctor@example.com",
+                    role=UserRole.ADMIN,
+                    is_active=True,
                 )
             )
-            logger.info("Created doctor profile for %s", DOCTOR_NAME)
-        elif settings.doctor_email and doctor.user.email != settings.doctor_email:
-            doctor.user.email = settings.doctor_email
+            logger.info("Created account for %s", DOCTOR_NAME)
+        elif settings.doctor_email and doctor.email != settings.doctor_email:
+            doctor.email = settings.doctor_email
         db.commit()
 
 
