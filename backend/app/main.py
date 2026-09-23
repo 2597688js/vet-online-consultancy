@@ -2,13 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db_setup import prepare_database
 from app.routers import admin, appointments, auth, pets
 from app.scheduler import start_scheduler
-from app.storage import upload_root
 
 
 @asynccontextmanager
@@ -28,8 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.mount("/uploads", StaticFiles(directory=upload_root()), name="uploads")
 
 app.include_router(auth.router)
 app.include_router(pets.router)

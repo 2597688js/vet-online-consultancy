@@ -59,14 +59,6 @@ class PetCreateRequest(BaseModel):
     medical_history: str | None = None
 
 
-class PetPhotoOut(BaseModel):
-    id: uuid.UUID
-    url: str
-    created_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
 class PetOut(BaseModel):
     id: uuid.UUID
     name: str | None
@@ -80,7 +72,6 @@ class PetOut(BaseModel):
     existing_conditions: str | None
     current_medications: str | None
     medical_history: str | None
-    photos: list[PetPhotoOut]
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -1,7 +1,8 @@
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Button } from "../components/Button";
-import { AlertIcon, StarIcon } from "../components/icons";
+import { AlertIcon, StarIcon, WhatsAppIcon } from "../components/icons";
+import { doctorWhatsAppLink } from "../lib/whatsapp";
 import { useAuth } from "../context/AuthContext";
 
 const doctor = {
@@ -56,6 +57,7 @@ const stats = [
 ];
 
 export function Home() {
+  const whatsAppHref = doctorWhatsAppLink();
   const { user } = useAuth();
   const bookHref = user ? "/book" : "/login";
 
@@ -82,6 +84,17 @@ export function Home() {
                 Meet Dr. Sarkar
               </Button>
             </div>
+            {whatsAppHref && (
+              <a
+                href={whatsAppHref}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#128C7E] hover:underline"
+              >
+                <WhatsAppIcon className="h-5 w-5" />
+                Or message Dr. Sarkar on WhatsApp and share photos or videos of your pet
+              </a>
+            )}
           </div>
           <div className="flex h-80 items-center justify-center rounded-3xl bg-gradient-to-br from-primary-100 to-primary-50 text-8xl lg:h-96">
             🐕

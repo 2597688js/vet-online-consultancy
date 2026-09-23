@@ -61,7 +61,6 @@ Open **http://localhost:5173/admin**. There's no login or password.
 | `/register` | Pet owners | Create an account |
 | `/login` | Pet owners | Sign in |
 | `/book` | Pet owners | Book a consultation |
-| `/appointments` | Pet owners | See your appointments |
 | `/admin` | Doctor | See and manage all appointments (no login) |
 
 ## Configuration (optional)
@@ -72,6 +71,9 @@ Everything works with the defaults. To change something, create `backend/.env`; 
 - **Postgres needs a username/password.** By default the backend connects to a local Postgres as your OS user
   (the Homebrew / Postgres.app default). Otherwise set:
   `DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/vet_online_consultancy`
+- **Dr. Sarkar's WhatsApp:** set `VITE_DOCTOR_WHATSAPP=+91XXXXXXXXXX` in `.env.local` at the project root. This turns on
+  the "Chat on WhatsApp" links (floating button, home page, footer, booking page) so owners can message her and
+  share photos and videos. The links stay hidden until it's set.
 - **Google sign-in:** set `GOOGLE_CLIENT_ID` in `backend/.env` and `VITE_GOOGLE_CLIENT_ID` in `.env.local` at the project root.
 - **Email reminders to the doctor:** set `DOCTOR_EMAIL` and the `SMTP_*` values in `backend/.env`.
   Each reminder links to the dashboard.

@@ -52,14 +52,9 @@ export function Header() {
             <>
               <span className="text-sm font-medium text-body">Hi, {greetingName(user.full_name)}</span>
               {user.role === "OWNER" ? (
-                <>
-                  <Button variant="text" href="/appointments">
-                    My Appointments
-                  </Button>
-                  <Button variant="primary" href="/book">
-                    Book Now
-                  </Button>
-                </>
+                <Button variant="primary" href="/book">
+                  Book Now
+                </Button>
               ) : (
                 <Button variant="primary" href="/admin">
                   Dashboard
@@ -106,14 +101,9 @@ export function Header() {
             {user ? (
               <>
                 {user.role === "OWNER" ? (
-                  <>
-                    <Button variant="secondary" href="/appointments" className="flex-1">
-                      My Appointments
-                    </Button>
-                    <Button variant="primary" href="/book" className="flex-1">
-                      Book Now
-                    </Button>
-                  </>
+                  <Button variant="primary" href="/book" className="flex-1">
+                    Book Now
+                  </Button>
                 ) : (
                   <Button variant="primary" href="/admin" className="flex-1">
                     Dashboard

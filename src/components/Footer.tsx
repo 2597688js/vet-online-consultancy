@@ -1,11 +1,12 @@
 import { PawIcon } from "./icons";
+import { doctorWhatsAppLink } from "../lib/whatsapp";
 
 const columns = [
   {
     title: "Practice",
     links: [
       { label: "About", href: "/#about" },
-      { label: "Contact", href: "#" },
+      { label: "Contact on WhatsApp", href: doctorWhatsAppLink() ?? "#" },
     ],
   },
   {
@@ -39,7 +40,11 @@ export function Footer() {
               <ul className="mt-4 flex flex-col gap-3">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-sm text-muted hover:text-ink">
+                    <a
+                      href={link.href}
+                      {...(link.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+                      className="text-sm text-muted hover:text-ink"
+                    >
                       {link.label}
                     </a>
                   </li>

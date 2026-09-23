@@ -4,9 +4,9 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Book } from "./pages/Book";
 import { AdminDashboard } from "./pages/AdminDashboard";
-import { MyAppointments } from "./pages/MyAppointments";
 import { AuthProvider } from "./context/AuthContext";
 import { ScrollToHash } from "./components/ScrollToHash";
+import { WhatsAppFloatingButton } from "./components/WhatsAppFloatingButton";
 
 function App() {
   return (
@@ -18,8 +18,8 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/book" element={<Book />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/appointments" element={<MyAppointments />} />
       </Routes>
+      <WhatsAppFloatingButton />
     </AuthProvider>
   );
 }

@@ -8,7 +8,6 @@ from app.deps import get_current_user
 from app.models import (
     Appointment,
     AppointmentStatus,
-    ConsultationOffering,
     ConsultationType,
     DoctorProfile,
     Pet,
@@ -52,26 +51,15 @@ def create_appointment(
 
     doctor = get_solo_doctor(db)
 
-    offering = (
-        db.query(ConsultationOffering)
-        .filter(
-            ConsultationOffering.doctor_profile_id == doctor.id,
-            ConsultationOffering.type == DEFAULT_CONSULTATION_TYPE,
-            ConsultationOffering.is_active.is_(True),
-        )
-        .first()
-    )
-
     # No time is chosen at booking; Dr. Sarkar contacts the owner to arrange the consultation.
     appointment = Appointment(
         pet_id=pet.id,
         owner_id=current_user.id,
         doctor_profile_id=doctor.id,
-        consultation_offering_id=offering.id if offering else None,
         consultation_type=DEFAULT_CONSULTATION_TYPE,
-        duration_minutes=offering.duration_minutes if offering else DEFAULT_DURATION_MINUTES,
-        price_at_booking=offering.price if offering else Decimal("0.00"),
-        currency=offering.currency if offering else "INR",
+        duration_minutes=DEFAULT_DURATION_MINUTES,
+        price_at_booking=Decimal("0.00"),
+        currency="INR",
         symptoms=payload.symptoms.strip(),
         contact_name=payload.contact_name.strip(),
         contact_phone=payload.contact_phone.strip(),
@@ -81,13 +69,3 @@ def create_appointment(
     db.commit()
     db.refresh(appointment)
     return appointment
-
-
-@router.get("/me", response_model=list[AppointmentOut])
-def list_my_appointments(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[Appointment]:
-    return (
-        db.query(Appointment)
-        .filter(Appointment.owner_id == current_user.id)
-        .order_by(Appointment.created_at.desc())
-        .all()
-    )

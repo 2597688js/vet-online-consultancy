@@ -38,6 +38,13 @@ export function Button(props: ButtonAsButton | ButtonAsLink) {
   const classes = `${base} ${variantClasses[variant]} ${className}`;
 
   if ("href" in props && props.href) {
+    if (/^https?:\/\//.test(props.href)) {
+      return (
+        <a href={props.href} target="_blank" rel="noreferrer" className={classes}>
+          {children}
+        </a>
+      );
+    }
     return (
       <Link to={props.href} className={classes}>
         {children}

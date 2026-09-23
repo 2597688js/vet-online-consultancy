@@ -20,8 +20,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 1440
     cors_origins: str = "http://localhost:5173"
     google_client_id: str = ""
-    upload_dir: str = "uploads"
-    max_upload_mb: int = 5
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_username: str = ""

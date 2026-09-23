@@ -15,12 +15,6 @@ export interface AuthResponse {
 
 export type PetGender = "MALE" | "FEMALE" | "UNKNOWN";
 
-export interface PetPhoto {
-  id: string;
-  url: string;
-  created_at: string;
-}
-
 export interface Pet {
   id: string;
   name: string | null;
@@ -34,7 +28,6 @@ export interface Pet {
   existing_conditions: string | null;
   current_medications: string | null;
   medical_history: string | null;
-  photos: PetPhoto[];
   created_at: string;
 }
 
@@ -90,11 +83,10 @@ function authHeaders(token: string): HeadersInit {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const isFormData = options.body instanceof FormData;
   const res = await fetch(`/api${path}`, {
     ...options,
     headers: {
-      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      "Content-Type": "application/json",
       ...options.headers,
     },
   });
@@ -146,23 +138,6 @@ export function createPet(token: string, input: PetInput) {
   });
 }
 
-export function uploadPetPhotos(token: string, petId: string, files: File[]) {
-  const form = new FormData();
-  files.forEach((file) => form.append("files", file));
-  return request<Pet>(`/pets/${petId}/photos`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: form,
-  });
-}
-
-export function deletePetPhoto(token: string, petId: string, photoId: string) {
-  return request<Pet>(`/pets/${petId}/photos/${photoId}`, {
-    method: "DELETE",
-    headers: authHeaders(token),
-  });
-}
-
 export interface AppointmentInput {
   pet_id: string;
   symptoms: string;
@@ -175,12 +150,6 @@ export function createAppointment(token: string, input: AppointmentInput) {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(input),
-  });
-}
-
-export function listMyAppointments(token: string) {
-  return request<Appointment[]>("/appointments/me", {
-    headers: authHeaders(token),
   });
 }
 
