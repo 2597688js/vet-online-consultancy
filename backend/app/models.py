@@ -108,7 +108,6 @@ class Appointment(Base):
     status: Mapped[AppointmentStatus] = mapped_column(
         pg_enum(AppointmentStatus, "appointment_status"), default=AppointmentStatus.PENDING, index=True, nullable=False
     )
-    cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
 
     pet: Mapped["Pet"] = relationship(back_populates="appointments", foreign_keys=[pet_id])

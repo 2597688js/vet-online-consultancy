@@ -42,7 +42,6 @@ export function AdminDashboard() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingActionId, setPendingActionId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [cancellationReason, setCancellationReason] = useState("");
 
   function loadAppointments() {
     setListLoading(true);
@@ -59,21 +58,17 @@ export function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
-  async function handleStatusChange(appointmentId: string, status: api.AppointmentStatus, reason?: string) {
+  async function handleStatusChange(appointmentId: string, status: api.AppointmentStatus) {
     setActionError(null);
     setPendingActionId(appointmentId);
     try {
-      const updated = await api.updateAppointmentStatus(appointmentId, {
-        status,
-        cancellation_reason: reason,
-      });
+      const updated = await api.updateAppointmentStatus(appointmentId, { status });
       setAppointments((prev) =>
         filter === "ALL" || filter === status
           ? prev.map((a) => (a.id === appointmentId ? updated : a))
           : prev.filter((a) => a.id !== appointmentId)
       );
       setCancellingId(null);
-      setCancellationReason("");
     } catch (err) {
       setActionError(err instanceof ApiError ? err.message : "Couldn't update the appointment. Please try again.");
       loadAppointments();
@@ -184,9 +179,6 @@ export function AdminDashboard() {
                           value={appointment.home_visit_address ?? "Not given; check WhatsApp for a shared location"}
                         />
                       )}
-                      {appointment.status === "CANCELLED" && appointment.cancellation_reason && (
-                        <p className="mt-2 text-sm text-danger-600">Reason: {appointment.cancellation_reason}</p>
-                      )}
                     </div>
 
                     {appointment.owner_phone && (
@@ -204,27 +196,16 @@ export function AdminDashboard() {
 
                   {cancellingId === appointment.id ? (
                     <div className="mt-4 flex flex-col gap-3 rounded-xl bg-bg p-4 sm:flex-row sm:items-center">
-                      <input
-                        className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-ink placeholder-placeholder outline-none focus:border-ink"
-                        placeholder="Reason (optional)"
-                        value={cancellationReason}
-                        onChange={(e) => setCancellationReason(e.target.value)}
-                      />
+                      <p className="flex-1 text-sm font-medium text-ink">Cancel this request? This can't be undone.</p>
                       <div className="flex gap-2">
                         <Button
                           variant="danger"
                           disabled={isPending}
-                          onClick={() => handleStatusChange(appointment.id, "CANCELLED", cancellationReason.trim() || undefined)}
+                          onClick={() => handleStatusChange(appointment.id, "CANCELLED")}
                         >
                           {isPending ? "Cancelling…" : "Confirm cancel"}
                         </Button>
-                        <Button
-                          variant="text"
-                          onClick={() => {
-                            setCancellingId(null);
-                            setCancellationReason("");
-                          }}
-                        >
+                        <Button variant="text" onClick={() => setCancellingId(null)}>
                           Back
                         </Button>
                       </div>

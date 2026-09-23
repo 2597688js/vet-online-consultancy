@@ -85,7 +85,6 @@ EXPORT_COLUMNS = [
     ("Medical history", lambda a: a.pet.medical_history or ""),
     ("Current medications", lambda a: a.pet.current_medications or ""),
     ("Allergies", lambda a: a.pet.allergies or ""),
-    ("Cancellation reason", lambda a: a.cancellation_reason or ""),
 ]
 
 
@@ -126,11 +125,6 @@ def update_appointment_status(
     if appointment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Appointment not found")
 
-    if payload.cancellation_reason and payload.status != AppointmentStatus.CANCELLED:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="cancellation_reason is only valid when cancelling"
-        )
-
     allowed = ALLOWED_TRANSITIONS.get(appointment.status, set())
     if payload.status not in allowed:
         raise HTTPException(
@@ -138,8 +132,6 @@ def update_appointment_status(
             detail=f"Cannot move appointment from {appointment.status.value} to {payload.status.value}",
         )
 
-    if payload.status == AppointmentStatus.CANCELLED:
-        appointment.cancellation_reason = payload.cancellation_reason
 
     appointment.status = payload.status
     db.commit()

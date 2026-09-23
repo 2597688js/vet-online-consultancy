@@ -82,7 +82,7 @@ Open **http://localhost:5173/admin**. There's no login or password.
 1. Open `/admin`. New requests appear under **Pending**, newest first, with the owner's contact details, the
    pet's details and the health information.
 2. Use the **WhatsApp** button on a request to message the owner and arrange the consultation.
-3. Mark the request **Confirmed**, **Completed** or **Cancelled** (with an optional reason).
+3. Mark the request **Confirmed**, **Completed** or **Cancelled** (cancelling asks you to confirm first).
 4. Click **Download Excel** to get every request as a spreadsheet: owner details, pet details, health
    information, home visit, status and dates, one row per request. Requests that need a home visit are
    also tagged **Home visit** on the dashboard.

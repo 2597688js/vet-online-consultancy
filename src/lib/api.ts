@@ -38,7 +38,6 @@ export interface Appointment {
   home_visit_required: boolean;
   home_visit_address: string | null;
   status: AppointmentStatus;
-  cancellation_reason: string | null;
   created_at: string;
 }
 
@@ -154,7 +153,7 @@ export const APPOINTMENTS_EXPORT_URL = "/api/admin/appointments/export";
 
 export function updateAppointmentStatus(
   appointmentId: string,
-  input: { status: AppointmentStatus; cancellation_reason?: string }
+  input: { status: AppointmentStatus }
 ) {
   return request<AppointmentAdmin>(`/admin/appointments/${appointmentId}/status`, {
     method: "PATCH",

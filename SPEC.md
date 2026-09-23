@@ -53,7 +53,7 @@ screen has a prefilled "Send photos & videos on WhatsApp" message.
 **Admin dashboard** (`src/pages/AdminDashboard.tsx`): each request shows the pet (name or
 "Unnamed <species>"), owner name and number with a WhatsApp button, breed / sex / age / weight,
 main problem, medical history, medications and allergies. Status moves
-Pending → Confirmed → Completed, or → Cancelled with an optional reason. Home-visit requests get
+Pending → Confirmed → Completed, or → Cancelled (after a confirm step). Home-visit requests get
 a **Home visit** tag. **Download Excel** (`GET /api/admin/appointments/export`, built with
 `openpyxl`) returns all requests, one row each, with owner, pet, health, home-visit (incl. address), status and date columns.
 
@@ -66,7 +66,7 @@ Three tables, each with only the columns the app uses:
 - `pets`: `id`, `owner_id`, `name`, `species`, `breed`, `gender`, `date_of_birth` (from the age
   entered), `weight_kg`, `color`, `allergies`, `current_medications`, `medical_history`.
 - `appointments` (the requests): `id`, `pet_id`, `contact_name`, `contact_phone`, `symptoms` (the
-  main problem), `home_visit_required`, `home_visit_address`, `status`, `cancellation_reason`,
+  main problem), `home_visit_required`, `home_visit_address`, `status`,
   `created_at`. The owner is reached through the pet.
 - Each request creates a new `pets` row; there's no saved-pets list, no time slot and no reminder emails.
 

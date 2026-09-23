@@ -95,7 +95,6 @@ class AppointmentOut(BaseModel):
     home_visit_required: bool
     home_visit_address: str | None
     status: AppointmentStatus
-    cancellation_reason: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -109,4 +108,3 @@ class AppointmentAdminOut(AppointmentOut):
 
 class AppointmentStatusUpdateRequest(BaseModel):
     status: AppointmentStatus
-    cancellation_reason: str | None = Field(default=None, max_length=1000)
