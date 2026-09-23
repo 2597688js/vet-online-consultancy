@@ -12,6 +12,7 @@ import os
 import sys
 
 from app.database import SessionLocal
+from app.db_setup import prepare_database
 from app.models import DoctorProfile, User, UserRole, VerificationStatus
 from app.security import hash_password
 
@@ -28,6 +29,7 @@ def main() -> None:
         print("ADMIN_PASSWORD must be at least 8 characters.", file=sys.stderr)
         sys.exit(1)
 
+    prepare_database()
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.email == email).first()

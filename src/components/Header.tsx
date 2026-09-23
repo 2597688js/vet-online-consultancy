@@ -6,8 +6,6 @@ import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Services", href: "/#services" },
   { label: "About", href: "/#about" },
   { label: "FAQs", href: "/#faqs" },
 ];
@@ -54,6 +52,20 @@ export function Header() {
           {user ? (
             <>
               <span className="text-sm font-medium text-body">Hi, {greetingName(user.full_name)}</span>
+              {user.role === "OWNER" ? (
+                <>
+                  <Button variant="text" href="/appointments">
+                    My Appointments
+                  </Button>
+                  <Button variant="primary" href="/book">
+                    Book Now
+                  </Button>
+                </>
+              ) : (
+                <Button variant="primary" href="/admin">
+                  Dashboard
+                </Button>
+              )}
               <Button variant="text" onClick={handleLogout}>
                 Logout
               </Button>
@@ -91,11 +103,27 @@ export function Header() {
               {link.label}
             </a>
           ))}
-          <div className="mt-2 flex gap-3 px-3">
+          <div className="mt-2 flex flex-wrap gap-3 px-3">
             {user ? (
-              <Button variant="secondary" onClick={handleLogout} className="flex-1">
-                Logout
-              </Button>
+              <>
+                {user.role === "OWNER" ? (
+                  <>
+                    <Button variant="secondary" href="/appointments" className="flex-1">
+                      My Appointments
+                    </Button>
+                    <Button variant="primary" href="/book" className="flex-1">
+                      Book Now
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="primary" href="/admin" className="flex-1">
+                    Dashboard
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={handleLogout} className="flex-1">
+                  Logout
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="secondary" href="/login" className="flex-1">

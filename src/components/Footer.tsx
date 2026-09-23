@@ -3,15 +3,18 @@ import { PawIcon } from "./icons";
 const columns = [
   {
     title: "Practice",
-    links: ["About", "Contact"],
-  },
-  {
-    title: "Services",
-    links: ["General Consultation", "Nutrition", "Skin & Allergy", "Dental"],
+    links: [
+      { label: "About", href: "/#about" },
+      { label: "Contact", href: "#" },
+    ],
   },
   {
     title: "Support",
-    links: ["FAQs", "Privacy Policy", "Terms of Service"],
+    links: [
+      { label: "FAQs", href: "/#faqs" },
+      { label: "Privacy Policy", href: "#" },
+      { label: "Terms of Service", href: "#" },
+    ],
   },
 ];
 
@@ -19,8 +22,8 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-white">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-20">
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-5">
-          <div className="col-span-2 lg:col-span-1">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
+          <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-2 text-lg font-bold text-ink">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
                 <PawIcon className="h-5 w-5" />
@@ -36,9 +39,9 @@ export function Footer() {
               <h4 className="text-sm font-semibold text-ink">{col.title}</h4>
               <ul className="mt-4 flex flex-col gap-3">
                 {col.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-sm text-muted hover:text-ink">
-                      {link}
+                  <li key={link.label}>
+                    <a href={link.href} className="text-sm text-muted hover:text-ink">
+                      {link.label}
                     </a>
                   </li>
                 ))}

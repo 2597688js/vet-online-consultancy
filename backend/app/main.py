@@ -1,10 +1,25 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import auth
+from app.db_setup import prepare_database
+from app.routers import admin, appointments, auth, pets
+from app.scheduler import start_scheduler
+from app.storage import upload_root
 
-app = FastAPI(title="Vet Online Consultancy API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    prepare_database()
+    scheduler = start_scheduler()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(title="Vet Online Consultancy API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,7 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/uploads", StaticFiles(directory=upload_root()), name="uploads")
+
 app.include_router(auth.router)
+app.include_router(pets.router)
+app.include_router(appointments.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/health")

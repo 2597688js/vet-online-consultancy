@@ -7,12 +7,13 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Numeric,
-    SmallInteger,
     String,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM as PgEnum, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -127,6 +128,23 @@ class Pet(Base):
 
     owner: Mapped["User"] = relationship(back_populates="pets", foreign_keys=[owner_id])
     appointments: Mapped[list["Appointment"]] = relationship(back_populates="pet", foreign_keys="Appointment.pet_id")
+    photos: Mapped[list["PetPhoto"]] = relationship(back_populates="pet", cascade="all, delete-orphan")
+
+
+# ---------------------------------------------------------------------------
+# PetPhoto
+# ---------------------------------------------------------------------------
+
+
+class PetPhoto(Base):
+    __tablename__ = "pet_photos"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("pets.id", ondelete="CASCADE"), index=True, nullable=False)
+    url: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+
+    pet: Mapped["Pet"] = relationship(back_populates="photos")
 
 
 # ---------------------------------------------------------------------------
@@ -160,7 +178,6 @@ class DoctorProfile(Base):
     user: Mapped["User"] = relationship(back_populates="doctor_profile", foreign_keys=[user_id])
     verified_by: Mapped["User | None"] = relationship(foreign_keys=[verified_by_id])
     consultation_offerings: Mapped[list["ConsultationOffering"]] = relationship(back_populates="doctor_profile")
-    availabilities: Mapped[list["DoctorAvailability"]] = relationship(back_populates="doctor_profile")
 
 
 # ---------------------------------------------------------------------------
@@ -188,36 +205,21 @@ class ConsultationOffering(Base):
 
 
 # ---------------------------------------------------------------------------
-# DoctorAvailability — recurring weekly template (not materialized slots)
-# ---------------------------------------------------------------------------
-
-
-class DoctorAvailability(Base):
-    __tablename__ = "doctor_availabilities"
-    __table_args__ = (UniqueConstraint("doctor_profile_id", "day_of_week", "start_time", "end_time"),)
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
-    doctor_profile_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("doctor_profiles.id", ondelete="CASCADE"), index=True, nullable=False
-    )
-    day_of_week: Mapped[int] = mapped_column(SmallInteger, index=True, nullable=False)  # 0=Sunday..6=Saturday
-    start_time: Mapped[int] = mapped_column(SmallInteger, nullable=False)  # minutes from midnight
-    end_time: Mapped[int] = mapped_column(SmallInteger, nullable=False)  # minutes from midnight
-    buffer_minutes: Mapped[int] = mapped_column(default=0, nullable=False)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
-
-    doctor_profile: Mapped["DoctorProfile"] = relationship(back_populates="availabilities")
-
-
-# ---------------------------------------------------------------------------
 # Appointment — booking that links pet + doctor + consultation type + slot
 # ---------------------------------------------------------------------------
 
 
 class Appointment(Base):
     __tablename__ = "appointments"
+    __table_args__ = (
+        Index(
+            "uq_appointments_doctor_slot",
+            "doctor_profile_id",
+            "scheduled_start",
+            unique=True,
+            postgresql_where=text("status != 'CANCELLED'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
     pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("pets.id", ondelete="RESTRICT"), nullable=False)
@@ -242,10 +244,12 @@ class Appointment(Base):
     status: Mapped[AppointmentStatus] = mapped_column(
         pg_enum(AppointmentStatus, "appointment_status"), default=AppointmentStatus.PENDING, index=True, nullable=False
     )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     cancelled_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -259,12 +263,9 @@ class Appointment(Base):
 
 
 # extra composite indexes (declared separately to keep single-column ones above readable)
-from sqlalchemy import Index  # noqa: E402
-
 Index("ix_appointments_owner_status", Appointment.owner_id, Appointment.status)
 Index("ix_appointments_doctor_scheduled_start", Appointment.doctor_profile_id, Appointment.scheduled_start)
 Index("ix_appointments_scheduled_start", Appointment.scheduled_start)
-Index("ix_doctor_availabilities_profile_day", DoctorAvailability.doctor_profile_id, DoctorAvailability.day_of_week)
 
 
 # ---------------------------------------------------------------------------

@@ -20,8 +20,8 @@ export function Login() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(email, password);
-      navigate("/");
+      const loggedInUser = await login(email, password);
+      navigate(loggedInUser.role === "OWNER" ? "/" : "/admin");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -33,8 +33,8 @@ export function Login() {
     setError(null);
     setSubmitting(true);
     try {
-      await loginWithGoogle(credential);
-      navigate("/");
+      const loggedInUser = await loginWithGoogle(credential);
+      navigate(loggedInUser.role === "OWNER" ? "/" : "/admin");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
     } finally {
