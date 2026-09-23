@@ -28,7 +28,7 @@ from that plan; see §0 "Not built" for what was dropped.
 | `/admin` | Dr. Sarkar | All requests, filterable by status; **no login** (runs on her own computer) |
 
 Header nav: Home, About; signed-in owners get **Book Now** and **Logout**. Footer: About,
-Contact on WhatsApp, Privacy Policy, Terms of Service. A floating **Chat on WhatsApp**
+Contact on WhatsApp. A floating **Chat on WhatsApp**
 button shows on every page except `/admin`.
 
 ### Core flow
@@ -82,7 +82,6 @@ Pending → Confirmed → Completed, or → Cancelled with an optional reason.
 ### Placeholder content
 
 Doctor and hero images are emoji in tinted boxes; swap for real photography before launch.
-Privacy Policy and Terms of Service footer links point nowhere yet.
 
 ## 1. Product Overview
 

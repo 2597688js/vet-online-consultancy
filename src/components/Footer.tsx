@@ -9,21 +9,14 @@ const columns = [
       { label: "Contact on WhatsApp", href: doctorWhatsAppLink() ?? "#" },
     ],
   },
-  {
-    title: "Support",
-    links: [
-      { label: "Privacy Policy", href: "#" },
-      { label: "Terms of Service", href: "#" },
-    ],
-  },
 ];
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-white">
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-20">
-        <div className="grid grid-cols-2 gap-10 sm:grid-cols-3">
-          <div className="col-span-2 sm:col-span-1">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
+          <div>
             <div className="flex items-center gap-2 text-lg font-bold text-ink">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
                 <PawIcon className="h-5 w-5" />
