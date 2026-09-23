@@ -185,21 +185,17 @@ export function listMyAppointments(token: string) {
   });
 }
 
-export function listAdminAppointments(token: string, status?: AppointmentStatus) {
+export function listAdminAppointments(status?: AppointmentStatus) {
   const qs = status ? `?status=${status}` : "";
-  return request<AppointmentAdmin[]>(`/admin/appointments${qs}`, {
-    headers: authHeaders(token),
-  });
+  return request<AppointmentAdmin[]>(`/admin/appointments${qs}`);
 }
 
 export function updateAppointmentStatus(
-  token: string,
   appointmentId: string,
   input: { status: AppointmentStatus; cancellation_reason?: string }
 ) {
   return request<AppointmentAdmin>(`/admin/appointments/${appointmentId}/status`, {
     method: "PATCH",
-    headers: authHeaders(token),
     body: JSON.stringify(input),
   });
 }

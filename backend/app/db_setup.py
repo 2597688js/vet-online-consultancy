@@ -1,4 +1,4 @@
-"""Brings the database up to date on startup: creates it if missing, then runs migrations."""
+"""Startup tasks: create the database if missing, run migrations, make sure the doctor exists."""
 import logging
 
 from alembic import command
@@ -7,8 +7,12 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
 from app.config import BACKEND_DIR, settings
+from app.database import SessionLocal
+from app.models import DoctorProfile, User, UserRole, VerificationStatus
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
+
+DOCTOR_NAME = "Dr. Nituparna Sarkar"
 
 
 def _create_database_if_missing() -> None:
@@ -28,8 +32,37 @@ def _create_database_if_missing() -> None:
         admin_engine.dispose()
 
 
+def _ensure_doctor() -> None:
+    """Bookings need the doctor's profile. Create it on first run; keep her email in sync with DOCTOR_EMAIL."""
+    with SessionLocal() as db:
+        doctor = db.query(DoctorProfile).order_by(DoctorProfile.created_at.asc()).first()
+        if doctor is None:
+            user = User(
+                full_name=DOCTOR_NAME,
+                email=settings.doctor_email or "doctor@example.com",
+                role=UserRole.ADMIN,
+                is_active=True,
+            )
+            db.add(user)
+            db.flush()
+            db.add(
+                DoctorProfile(
+                    user_id=user.id,
+                    specialty="General Veterinary Medicine",
+                    verification_status=VerificationStatus.VERIFIED,
+                    is_accepting_appointments=True,
+                )
+            )
+            logger.info("Created doctor profile for %s", DOCTOR_NAME)
+        elif settings.doctor_email and doctor.user.email != settings.doctor_email:
+            doctor.user.email = settings.doctor_email
+        db.commit()
+
+
 def prepare_database() -> None:
     _create_database_if_missing()
     config = Config(str(BACKEND_DIR / "alembic.ini"))
     config.attributes["configure_logger"] = False  # keep uvicorn's logging intact
     command.upgrade(config, "head")
+    _ensure_doctor()
+    logger.info("Admin dashboard: %s/admin", settings.app_base_url.rstrip("/"))

@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Button } from "../components/Button";
 import { ChatIcon, PawIcon } from "../components/icons";
-import { useAuth } from "../context/AuthContext";
 import * as api from "../lib/api";
 import { ApiError } from "../lib/api";
 import { buildWhatsAppLink } from "../lib/whatsapp";
@@ -35,8 +33,6 @@ function formatDateTime(iso: string): string {
 }
 
 export function AdminDashboard() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
 
   const [filter, setFilter] = useState<api.AppointmentStatus | "ALL">("PENDING");
   const [appointments, setAppointments] = useState<api.AppointmentAdmin[]>([]);
@@ -47,37 +43,26 @@ export function AdminDashboard() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
 
-  useEffect(() => {
-    if (!loading && (!user || (user.role !== "ADMIN" && user.role !== "VET"))) {
-      navigate("/login");
-    }
-  }, [loading, user, navigate]);
-
   function loadAppointments() {
-    const token = api.getToken();
-    if (!token) return;
     setListLoading(true);
     setListError(null);
     api
-      .listAdminAppointments(token, filter === "ALL" ? undefined : filter)
+      .listAdminAppointments(filter === "ALL" ? undefined : filter)
       .then(setAppointments)
       .catch((err) => setListError(err instanceof ApiError ? err.message : "Couldn't load appointments."))
       .finally(() => setListLoading(false));
   }
 
   useEffect(() => {
-    if (!user || (user.role !== "ADMIN" && user.role !== "VET")) return;
     loadAppointments();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filter]);
+  }, [filter]);
 
   async function handleStatusChange(appointmentId: string, status: api.AppointmentStatus, reason?: string) {
-    const token = api.getToken();
-    if (!token) return;
     setActionError(null);
     setPendingActionId(appointmentId);
     try {
-      const updated = await api.updateAppointmentStatus(token, appointmentId, {
+      const updated = await api.updateAppointmentStatus(appointmentId, {
         status,
         cancellation_reason: reason,
       });
@@ -94,18 +79,6 @@ export function AdminDashboard() {
     } finally {
       setPendingActionId(null);
     }
-  }
-
-  if (loading || !user) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex flex-1 items-center justify-center">
-          <p className="text-sm text-muted">Loading…</p>
-        </main>
-        <Footer />
-      </div>
-    );
   }
 
   return (

@@ -34,7 +34,8 @@ uvicorn app.main:app --reload
 API: http://localhost:8000 (interactive docs at http://localhost:8000/docs).
 
 On startup the backend creates the `vet_online_consultancy` database if it doesn't exist, applies all
-migrations, and generates a `JWT_SECRET` (the key that signs login tokens) into `backend/.env`.
+migrations, creates the doctor's profile, and saves a generated `JWT_SECRET` (signs pet owners'
+login tokens) into `backend/.env`.
 You don't need to configure anything.
 
 **3. Frontend** (terminal 2, from the project root)
@@ -46,25 +47,22 @@ npm run dev
 
 Open **http://localhost:5173**.
 
-**4. Create the doctor's admin account** (once, in a third terminal)
+**4. Admin dashboard**
 
-```bash
-cd backend
-source .venv/bin/activate
-ADMIN_EMAIL='doctor@example.com' ADMIN_PASSWORD='a-strong-password' python -m scripts.seed_admin
-```
+Open **http://localhost:5173/admin**. There's no login or password.
 
-Re-running it with the same email resets the password.
+> Anyone who can open the site can open `/admin` and see every owner's contact details. That's fine while
+> the app runs only on the doctor's own computer. Add protection before putting it on the internet.
 
 ## Using the app
 
 | Page | Who | What |
 |---|---|---|
 | `/register` | Pet owners | Create an account |
-| `/login` | Everyone | Sign in (the doctor uses the admin account) |
+| `/login` | Pet owners | Sign in |
 | `/book` | Pet owners | Book a consultation |
 | `/appointments` | Pet owners | See your appointments |
-| `/admin` | Doctor | See and manage all appointments |
+| `/admin` | Doctor | See and manage all appointments (no login) |
 
 ## Configuration (optional)
 
@@ -75,7 +73,8 @@ Everything works with the defaults. To change something, create `backend/.env`; 
   (the Homebrew / Postgres.app default). Otherwise set:
   `DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/vet_online_consultancy`
 - **Google sign-in:** set `GOOGLE_CLIENT_ID` in `backend/.env` and `VITE_GOOGLE_CLIENT_ID` in `.env.local` at the project root.
-- **Email notifications to the doctor:** set the `SMTP_*` values in `backend/.env`.
+- **Email reminders to the doctor:** set `DOCTOR_EMAIL` and the `SMTP_*` values in `backend/.env`.
+  Each reminder links to the dashboard.
 
 Restart the backend (and frontend, for `.env.local`) after changing these.
 

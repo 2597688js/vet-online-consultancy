@@ -5,15 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import require_staff
-from app.models import Appointment, AppointmentStatus, User
+from app.models import Appointment, AppointmentStatus
+from app.routers.appointments import get_solo_doctor
 from app.schemas import AppointmentAdminOut, AppointmentOut, AppointmentStatusUpdateRequest
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 # Single-doctor practice: admin endpoints intentionally don't filter by
-# doctor_profile_id. If a second doctor is ever added, list/update here
-# needs to scope appointments to the current staff user's DoctorProfile.
+# doctor_profile_id. There's no admin login: the dashboard and these endpoints are open by design.
 ALLOWED_TRANSITIONS: dict[AppointmentStatus, set[AppointmentStatus]] = {
     AppointmentStatus.PENDING: {AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED},
     AppointmentStatus.CONFIRMED: {AppointmentStatus.COMPLETED, AppointmentStatus.CANCELLED},
@@ -36,7 +35,6 @@ def _to_admin_out(appointment: Appointment) -> AppointmentAdminOut:
 @router.get("/appointments", response_model=list[AppointmentAdminOut])
 def list_admin_appointments(
     status_filter: AppointmentStatus | None = Query(default=None, alias="status"),
-    current_user: User = Depends(require_staff),
     db: Session = Depends(get_db),
 ) -> list[AppointmentAdminOut]:
     query = db.query(Appointment).order_by(Appointment.scheduled_start.desc())
@@ -49,7 +47,6 @@ def list_admin_appointments(
 def update_appointment_status(
     appointment_id: uuid.UUID,
     payload: AppointmentStatusUpdateRequest,
-    current_user: User = Depends(require_staff),
     db: Session = Depends(get_db),
 ) -> AppointmentAdminOut:
     appointment = db.get(Appointment, appointment_id)
@@ -76,7 +73,7 @@ def update_appointment_status(
     elif payload.status == AppointmentStatus.CANCELLED:
         appointment.cancelled_at = now
         appointment.cancellation_reason = payload.cancellation_reason
-        appointment.cancelled_by_user_id = current_user.id
+        appointment.cancelled_by_user_id = get_solo_doctor(db).user_id
 
     appointment.status = payload.status
     db.commit()
