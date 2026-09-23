@@ -1,57 +1,106 @@
 # Veterinary Online Consultation Platform — Wireframe Spec & Build Reference
 
-Reference doc for continuing both tracks of this project: the Figma low-fidelity
-wireframe (§2–9 below) and the real frontend build (§0). Combines the original spec
-(`Veterinary_Online_Consultation_Figma_Wireframe_Specification.pdf`) with the
-decisions and state from both, so work can resume without re-deriving either.
+Reference doc for the project. §0–1 describe **the app as it is actually built**: a
+single-doctor practice where owners submit consultation requests and Dr. Sarkar follows up
+on WhatsApp. §2–9 are the **original Figma wireframe plan** (from
+`Veterinary_Online_Consultation_Figma_Wireframe_Specification.pdf`) for a multi-vet
+marketplace. They're kept as a design reference, but the app has deliberately moved away
+from that plan; see §0 "Not built" for what was dropped.
 
-## 0. Frontend Codebase (actual working app, not wireframe)
+## 0. Current App (what's actually built)
 
-Decision: build real pages directly in code rather than waiting on Figma, since the
-Figma track is blocked on MCP quota (see §2). The two tracks are independent —
-Figma stays the reference for screens not yet built in code.
+### Stack
 
-- **Stack**: React 19 + Vite + TypeScript, Tailwind CSS v4 (`@tailwindcss/vite` plugin,
-  CSS-first `@theme` config — no `tailwind.config.js`), `react-router-dom` v7.
-- **Run**: `npm run dev` (port 5173), `npm run build`, `npx tsc -b --noEmit` to type-check.
-- **Design tokens** live in `src/index.css` under `@theme` — NOT the grayscale wireframe
-  palette from §2, a real brand palette (teal primary `--color-primary-600: #0d9488`,
-  ink/body/muted grays, `--color-danger-600` for destructive states). Font is Inter,
-  loaded via Google Fonts `<link>` in `index.html`.
-- **Structure**:
-  - `src/components/` — `Button.tsx` (primary/secondary/text/danger variants, polymorphic
-    button-or-Link), `Input.tsx`, `Header.tsx` (public nav, responsive w/ mobile hamburger),
-    `Footer.tsx`, `DoctorCard.tsx`, `icons.tsx` (hand-drawn inline SVG icon set — no icon
-    library dependency: `PawIcon`, `SearchIcon`, `CalendarIcon`, `VideoIcon`, `StarIcon`,
-    `ClipboardIcon`, `ShieldIcon`, `ToothIcon`, `HeartPulseIcon`, `LeafIcon`, `ChatIcon`, `AlertIcon`)
-  - `src/pages/` — `Home.tsx`, `Login.tsx`
-  - `src/App.tsx` — routes: `/` → Home, `/login` → Login. `/register` is linked from
-    Login but not yet built (matches SPEC §5 Public #7, not started).
-- **Built so far**: Home page (Header, Hero, How It Works ×4, Services ×6, Veterinarian
-  Preview ×4 `DoctorCard`, Emergency notice, Footer) and Login page (420px centered
-  card, email/password, forgot-password, Google sign-in, Register link) — both verified
-  rendering correctly at desktop (1440×1024) and mobile (390×844) via `playwright-cli`,
-  zero console errors.
-- **Not yet built in code**: every other screen in the §5 inventory (Register, and all
-  Owner/Vet/Admin/mobile screens) — build order should still follow §8.
-- **Placeholder content**: doctor photos use emoji in a tinted rounded box (no image
-  assets sourced/licensed yet) — swap for real photography before shipping.
+- **Frontend**: React 19 + Vite + TypeScript, Tailwind CSS v4 (`@tailwindcss/vite`, CSS-first
+  `@theme` config in `src/index.css`, no `tailwind.config.js`), `react-router-dom` v7.
+  Brand palette (teal primary `--color-primary-600: #0d9488`), Inter font.
+- **Backend**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (`backend/`). On startup it creates
+  the database if missing, runs migrations and creates Dr. Sarkar's doctor profile.
+- **Run**: see `HOW_TO_USE.md`. Frontend on port 5173 proxies `/api` to the backend on 8000.
+
+### Pages
+
+| Route | Who | What |
+|---|---|---|
+| `/` | Everyone | Hero (Book Consultation, Meet Dr. Sarkar, WhatsApp link); About Dr. Sarkar (bio, stats, education & experience, areas of expertise, languages); emergency notice |
+| `/register`, `/login` | Pet owners | Email/password or Google sign-in |
+| `/book` | Pet owners (signed in) | Consultation request form (below) |
+| `/admin` | Dr. Sarkar | All requests, filterable by status; **no login** (runs on her own computer) |
+
+Header nav: Home, About; signed-in owners get **Book Now** and **Logout**. Footer: About,
+Contact on WhatsApp, Privacy Policy, Terms of Service. A floating **Chat on WhatsApp**
+button shows on every page except `/admin`.
+
+### Core flow
+
+`Owner signs in → fills in the request form → submits → Dr. Sarkar sees it on /admin →
+contacts the owner on WhatsApp → marks it Confirmed / Completed / Cancelled`
+
+**Request form** (`src/pages/Book.tsx`), one page, no steps:
+
+- **Owner details**: name, WhatsApp number (pre-filled from the account, editable per request)
+- **Pet details**: name (optional), species (free text with suggestions), breed, sex
+  (Male / Female / Not sure), age (years + months, stored as an approximate date of birth),
+  weight and color (optional)
+- **Health information**: main problem (required), medical history, current medications,
+  allergies (optional)
+
+There is **no time slot, payment or photo upload**. Owners send photos and videos over
+WhatsApp (links on the form, on the confirmation screen and site-wide). The confirmation
+screen has a prefilled "Send photos & videos on WhatsApp" message.
+
+**Admin dashboard** (`src/pages/AdminDashboard.tsx`): each request shows the pet (name or
+"Unnamed <species>"), owner name and number with a WhatsApp button, breed / sex / age / weight,
+main problem, medical history, medications and allergies. Status moves
+Pending → Confirmed → Completed, or → Cancelled with an optional reason.
+
+### Data model (`backend/app/models.py`)
+
+- `users` (owners and the doctor), `doctor_profiles` (one row: Dr. Sarkar), `pets`, `appointments`.
+- An appointment stores the booking's `contact_name` / `contact_phone`, `symptoms` (the main
+  problem) and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
+  no time; older slot-based bookings keep theirs.
+- Each request creates a new `pets` row; there's no saved-pets list.
+
+### Configuration
+
+- `VITE_DOCTOR_WHATSAPP` in `.env.local`: Dr. Sarkar's WhatsApp number; WhatsApp links are
+  hidden until it's set.
+- `VITE_GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_ID`: Google sign-in.
+- `DOCTOR_EMAIL` + `SMTP_*`: 15-minute reminder emails. These only fire for appointments with
+  a scheduled time, so requests from the current form don't trigger them.
+
+### Not built (deliberately dropped from the original plan)
+
+- Multiple vets, vet search, doctor profile pages, vet/admin role dashboards (§5 Vet and Admin areas)
+- Time-slot booking, video/audio/chat inside the app: consultations happen over WhatsApp
+- Payments, prescriptions, medical records, messages, reviews
+- Owner dashboard, saved pets, pet profiles, owner appointment history ("My Appointments")
+- Photo/document uploads: done over WhatsApp instead
+- FAQs page/section
+
+### Placeholder content
+
+Doctor and hero images are emoji in tinted boxes; swap for real photography before launch.
+Privacy Policy and Terms of Service footer links point nowhere yet.
 
 ## 1. Product Overview
 
-A marketplace connecting pet owners with veterinarians for online consultations
-(video/audio/chat), plus pet medical record management, prescriptions, and payments.
-Three user roles:
+**Current product**: an online consultation site for one veterinarian, Dr. Nituparna Sarkar.
+Two roles in practice:
 
-- **Pet Owner** — manages pets, books/pays for consultations, talks to vets, keeps records.
-- **Veterinarian** — manages availability, sees patients, runs consultations, writes prescriptions.
-- **Admin** — verifies doctors, manages users/payments/reviews, platform oversight.
+- **Pet Owner**: registers, submits a consultation request with pet and health details,
+  chats with Dr. Sarkar on WhatsApp.
+- **Doctor (admin)**: reviews requests on `/admin`, contacts owners on WhatsApp, tracks status.
 
-Core journey to validate with the wireframe:
-`Pet Owner → pet is sick → Find a Vet → Choose Doctor → Book Slot → Pay → Talk to Doctor → Get Treatment → Save Medical Record`
+Core journey:
+`Pet is sick → Submit consultation request → Dr. Sarkar contacts owner on WhatsApp → Consultation → Mark completed`
 
-This is a **wireframe-first** effort — grayscale, low-fidelity, structure-and-flow only.
-No visual design polish (color, shadow, illustration) until the flow is validated.
+**Original plan** (what §2–9 were designed for): a marketplace connecting pet owners with
+many veterinarians for video/audio/chat consultations, plus medical records, prescriptions
+and payments, with three roles (Pet Owner, Veterinarian, Admin) and the journey
+`Pet Owner → pet is sick → Find a Vet → Choose Doctor → Book Slot → Pay → Talk to Doctor → Get Treatment → Save Medical Record`.
+That wireframe effort was grayscale, low-fidelity, structure-and-flow only.
 
 ## 2. Figma File Reference
 
@@ -172,7 +221,10 @@ No shadows, gradients, illustrations, or brand color at this stage.
 
 ## 5. Screen Inventory (target ~47 frames)
 
-None of the screens below are built yet — only the component library (§2) is done.
+_Original wireframe plan. In the built app only Home, Login, Register, a one-page request
+form (replacing the 5-step booking flow) and a single admin list exist; see §0._
+
+None of the screens below are built in Figma yet — only the component library (§2) is done.
 Build order should follow §8 (Recommended Build Order).
 
 ### Public Website (7) — page `02 — Web Screens`, section "Public"
@@ -267,6 +319,9 @@ Drafted in the failed/blocked script — rebuild using this content:
 
 ## 7. Prototype Navigation
 
+_Original plan. The built app's path is `Home → Login → Request form → Confirmation (→ WhatsApp)`;
+see §0._
+
 Primary clickable path (wire with Figma prototype connections once screens exist):
 
 `Home → Login → Owner Dashboard → Find Vet → Doctor Profile → Select Pet → Select Date/Time → Consultation Info → Payment → Confirmation → Appointment → Join Consultation → Prescription`
@@ -287,7 +342,9 @@ Complete Consultation, or Save Prescription).
    Reports, Settings
 5. **Phase 5**: Mobile versions of the key owner and consultation flows
 
-## 9. Status / Next Steps
+## 9. Status / Next Steps (Figma wireframe track)
+
+_The code track has moved past this plan; see §0 for what's built._
 
 - [x] Design tokens (colors, type, spacing convention)
 - [x] Core component library (buttons, inputs, cards, nav, feedback) — Default state only
