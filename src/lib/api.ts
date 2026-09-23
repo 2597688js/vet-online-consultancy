@@ -46,6 +46,7 @@ export interface Appointment {
   contact_name: string | null;
   contact_phone: string | null;
   home_visit_required: boolean;
+  home_visit_address: string | null;
   status: AppointmentStatus;
   confirmed_at: string | null;
   cancellation_reason: string | null;
@@ -145,6 +146,7 @@ export interface AppointmentInput {
   contact_name: string;
   contact_phone: string;
   home_visit_required: boolean;
+  home_visit_address?: string;
 }
 
 export function createAppointment(token: string, input: AppointmentInput) {

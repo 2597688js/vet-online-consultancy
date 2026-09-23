@@ -51,6 +51,11 @@ def create_appointment(
 
     doctor = get_solo_doctor(db)
 
+    # Optional even for home visits: owners can share their location on WhatsApp instead.
+    home_visit_address = None
+    if payload.home_visit_required:
+        home_visit_address = (payload.home_visit_address or "").strip() or None
+
     # No time is chosen at booking; Dr. Sarkar contacts the owner to arrange the consultation.
     appointment = Appointment(
         pet_id=pet.id,
@@ -64,6 +69,7 @@ def create_appointment(
         contact_name=payload.contact_name.strip(),
         contact_phone=payload.contact_phone.strip(),
         home_visit_required=payload.home_visit_required,
+        home_visit_address=home_visit_address,
         status=AppointmentStatus.PENDING,
     )
     db.add(appointment)

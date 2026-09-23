@@ -69,6 +69,7 @@ EXPORT_COLUMNS = [
     ("Submitted", lambda a: _format_datetime(a.created_at)),
     ("Status", lambda a: a.status.value.title()),
     ("Home visit required", lambda a: "Yes" if a.home_visit_required else "No"),
+    ("Home visit address", lambda a: a.home_visit_address or ""),
     ("Owner name", lambda a: a.contact_name or a.owner.full_name),
     ("Owner WhatsApp", lambda a: a.contact_phone or a.owner.phone or ""),
     ("Account name", lambda a: a.owner.full_name),

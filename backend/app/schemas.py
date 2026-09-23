@@ -88,6 +88,7 @@ class AppointmentCreateRequest(BaseModel):
     contact_name: str = Field(min_length=1, max_length=200)
     contact_phone: str = Field(min_length=7, max_length=30)
     home_visit_required: bool = False
+    home_visit_address: str | None = Field(default=None, max_length=1000)
 
 
 class AppointmentOut(BaseModel):
@@ -103,6 +104,7 @@ class AppointmentOut(BaseModel):
     contact_name: str | None
     contact_phone: str | None
     home_visit_required: bool
+    home_visit_address: str | None
     status: AppointmentStatus
     confirmed_at: datetime | None
     cancellation_reason: str | None

@@ -180,6 +180,12 @@ export function AdminDashboard() {
                       <PetHealthDetail label="Medical history" value={appointment.pet.medical_history ?? appointment.pet.existing_conditions} />
                       <PetHealthDetail label="Medications" value={appointment.pet.current_medications} />
                       <PetHealthDetail label="Allergies" value={appointment.pet.allergies} />
+                      {appointment.home_visit_required && (
+                        <PetHealthDetail
+                          label="Home visit address"
+                          value={appointment.home_visit_address ?? "Not given; check WhatsApp for a shared location"}
+                        />
+                      )}
                       {appointment.status === "CANCELLED" && appointment.cancellation_reason && (
                         <p className="mt-2 text-sm text-danger-600">Reason: {appointment.cancellation_reason}</p>
                       )}

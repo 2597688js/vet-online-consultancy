@@ -53,9 +53,11 @@ export function Book() {
   const [ownerPhone, setOwnerPhone] = useState("");
   const [pet, setPet] = useState<PetFormState>(initialPetForm);
   const whatsAppHref = doctorWhatsAppLink();
+  const locationHref = doctorWhatsAppLink("Hi Dr. Sarkar, sharing my location for the home visit.");
 
   const [symptoms, setSymptoms] = useState("");
   const [homeVisitRequired, setHomeVisitRequired] = useState(false);
+  const [homeVisitAddress, setHomeVisitAddress] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -131,6 +133,7 @@ export function Book() {
         pet_id: createdPet.id,
         symptoms: symptoms.trim(),
         home_visit_required: homeVisitRequired,
+        home_visit_address: homeVisitRequired ? homeVisitAddress.trim() || undefined : undefined,
         contact_name: ownerName.trim(),
         contact_phone: ownerPhone.trim(),
       });
@@ -205,6 +208,7 @@ export function Book() {
                   setPet(initialPetForm);
                   setSymptoms("");
                   setHomeVisitRequired(false);
+                  setHomeVisitAddress("");
                 }}
               >
                 Book another
@@ -452,6 +456,33 @@ export function Book() {
                     ))}
                   </div>
                 </fieldset>
+
+                {homeVisitRequired && (
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-ink">Address for the home visit (optional)</span>
+                    <textarea
+                      rows={3}
+                      className={textareaClass}
+                      placeholder="House / flat, street, area, landmark, city, PIN code"
+                      value={homeVisitAddress}
+                      onChange={(e) => setHomeVisitAddress(e.target.value)}
+                    />
+                    {locationHref && (
+                      <span className="text-sm text-muted">
+                        Or{" "}
+                        <a
+                          href={locationHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-[#128C7E] hover:underline"
+                        >
+                          share your location with Dr. Sarkar on WhatsApp
+                        </a>
+                        .
+                      </span>
+                    )}
+                  </label>
+                )}
 
                 <label className="flex flex-col gap-2">
                   <span className="text-sm font-semibold text-ink">Medical history (optional)</span>

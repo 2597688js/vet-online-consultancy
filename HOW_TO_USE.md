@@ -70,7 +70,7 @@ Open **http://localhost:5173/admin**. There's no login or password.
 2. Fill in the form:
    - **Owner details:** name and WhatsApp number (pre-filled from the account; can be changed per request)
    - **Pet details:** name (optional), species, breed, sex, age in years and months, plus optional weight and color
-   - **Health information:** main problem (required), **Require home visit?** (Yes/No), plus optional medical
+   - **Health information:** main problem (required), **Require home visit?** (Yes/No; if Yes, an optional address, or they can share their location on WhatsApp), plus optional medical
      history, current medications and allergies
 3. Click **Submit consultation request**. There's no time slot to pick; Dr. Sarkar contacts the owner on WhatsApp.
 4. To share photos or videos, use a **WhatsApp** link: the button on the confirmation screen, the link in

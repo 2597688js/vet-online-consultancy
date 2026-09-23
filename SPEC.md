@@ -42,7 +42,7 @@ contacts the owner on WhatsApp → marks it Confirmed / Completed / Cancelled`
 - **Pet details**: name (optional), species (free text with suggestions), breed, sex
   (Male / Female / Not sure), age (years + months, stored as an approximate date of birth),
   weight and color (optional)
-- **Health information**: main problem (required), require home visit (Yes/No, default No),
+- **Health information**: main problem (required), require home visit (Yes/No, default No; if Yes, an optional address, with a link to share the location on WhatsApp instead),
   medical history, current medications, allergies (optional)
 
 There is **no time slot, payment or photo upload**. Owners send photos and videos over
@@ -54,13 +54,13 @@ screen has a prefilled "Send photos & videos on WhatsApp" message.
 main problem, medical history, medications and allergies. Status moves
 Pending → Confirmed → Completed, or → Cancelled with an optional reason. Home-visit requests get
 a **Home visit** tag. **Download Excel** (`GET /api/admin/appointments/export`, built with
-`openpyxl`) returns all requests, one row each, with owner, pet, health, home-visit, status and date columns.
+`openpyxl`) returns all requests, one row each, with owner, pet, health, home-visit (incl. address), status and date columns.
 
 ### Data model (`backend/app/models.py`)
 
 - `users` (owners and the doctor), `doctor_profiles` (one row: Dr. Sarkar), `pets`, `appointments`.
 - An appointment stores the booking's `contact_name` / `contact_phone`, `symptoms` (the main
-  problem), `home_visit_required` and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
+  problem), `home_visit_required`, `home_visit_address` and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
   no time; older slot-based bookings keep theirs.
 - Each request creates a new `pets` row; there's no saved-pets list.
 

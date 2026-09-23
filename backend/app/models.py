@@ -182,6 +182,7 @@ class Appointment(Base):
     contact_name: Mapped[str | None] = mapped_column(String, nullable=True)
     contact_phone: Mapped[str | None] = mapped_column(String, nullable=True)
     home_visit_required: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
+    home_visit_address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     status: Mapped[AppointmentStatus] = mapped_column(
         pg_enum(AppointmentStatus, "appointment_status"), default=AppointmentStatus.PENDING, index=True, nullable=False
