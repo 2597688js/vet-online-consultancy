@@ -28,12 +28,6 @@ def gen_uuid() -> uuid.UUID:
 # ---------------------------------------------------------------------------
 
 
-class UserRole(str, enum.Enum):
-    OWNER = "OWNER"
-    VET = "VET"
-    ADMIN = "ADMIN"
-
-
 class PetGender(str, enum.Enum):
     MALE = "MALE"
     FEMALE = "FEMALE"
@@ -58,7 +52,7 @@ def pg_enum(python_enum: type[enum.Enum], name: str) -> PgEnum:
 
 
 # ---------------------------------------------------------------------------
-# User (single table, role-discriminated)
+# User (pet owners)
 # ---------------------------------------------------------------------------
 
 
@@ -71,13 +65,6 @@ class User(Base):
     google_id: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     full_name: Mapped[str] = mapped_column(String, nullable=False)
     phone: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
-    role: Mapped[UserRole] = mapped_column(pg_enum(UserRole, "user_role"), default=UserRole.OWNER, index=True, nullable=False)
-    avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
-    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     pets: Mapped[list["Pet"]] = relationship(back_populates="owner", foreign_keys="Pet.owner_id")
 
@@ -145,7 +132,6 @@ class Appointment(Base):
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    cancelled_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
@@ -154,7 +140,6 @@ class Appointment(Base):
 
     pet: Mapped["Pet"] = relationship(back_populates="appointments", foreign_keys=[pet_id])
     owner: Mapped["User"] = relationship(foreign_keys=[owner_id])
-    cancelled_by: Mapped["User | None"] = relationship(foreign_keys=[cancelled_by_user_id])
 
 
 # extra composite indexes (declared separately to keep single-column ones above readable)

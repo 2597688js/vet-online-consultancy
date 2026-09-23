@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
-from app.models import User, UserRole
+from app.models import User
 from app.schemas import AuthResponse, GoogleAuthRequest, LoginRequest, RegisterRequest, UserOut
 from app.security import create_access_token, hash_password, verify_password
 
@@ -26,7 +26,6 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> AuthRes
         email=payload.email,
         phone=payload.phone,
         password_hash=hash_password(payload.password),
-        role=UserRole.OWNER,
     )
     db.add(user)
     db.commit()
@@ -41,12 +40,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> AuthResponse:
     unauthorized = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     user = db.query(User).filter(User.email == payload.email).first()
-    if user is None or user.password_hash is None or user.deleted_at is not None:
+    if user is None or user.password_hash is None or not verify_password(payload.password, user.password_hash):
         raise unauthorized
-    if not verify_password(payload.password, user.password_hash):
-        raise unauthorized
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
     token = create_access_token(str(user.id))
     return AuthResponse(access_token=token, user=UserOut.model_validate(user))
@@ -80,16 +75,8 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)) -> Au
                 full_name=claims.get("name") or email.split("@")[0],
                 email=email,
                 google_id=google_id,
-                avatar_url=claims.get("picture"),
-                role=UserRole.OWNER,
-                is_active=True,
             )
             db.add(user)
-
-    if user.deleted_at is not None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account disabled")
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
     db.commit()
     db.refresh(user)

@@ -30,7 +30,7 @@ def check_upcoming_appointments() -> None:
         )
         for appointment in due:
             try:
-                sent = send_appointment_reminder(db, appointment)
+                sent = send_appointment_reminder(appointment)
             except Exception:
                 logger.exception("Failed to send reminder for appointment %s", appointment.id)
                 continue

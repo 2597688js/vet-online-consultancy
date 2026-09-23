@@ -16,7 +16,7 @@ from that plan; see §0 "Not built" for what was dropped.
   Brand palette (teal primary `--color-primary-600: #0d9488`), Inter font.
 - **Backend**: FastAPI + SQLAlchemy + Alembic + PostgreSQL (`backend/`). On startup it starts its
   own PostgreSQL server (port 5433, data in the project's `db/` folder, created with `initdb` on first
-  run), creates the database if missing, runs migrations and creates Dr. Sarkar's account (a `users` row with role ADMIN).
+  run), creates the database if missing and runs migrations.
 - **Run**: see `HOW_TO_USE.md`. Frontend on port 5173 proxies `/api` to the backend on 8000.
 
 ### Pages
@@ -59,8 +59,9 @@ a **Home visit** tag. **Download Excel** (`GET /api/admin/appointments/export`, 
 
 ### Data model (`backend/app/models.py`)
 
-- `users` (owners, plus Dr. Sarkar as role ADMIN), `pets`, `appointments`. No doctor-profile table:
-  it's a single-doctor practice, so requests don't link to a doctor.
+- `users` (pet owners only, no role column), `pets`, `appointments`. Dr. Sarkar has no row: she
+  doesn't sign in (`/admin` has no login), requests don't link to a doctor, and reminder emails go to
+  `DOCTOR_EMAIL`.
 - An appointment stores the booking's `contact_name` / `contact_phone`, `symptoms` (the main
   problem), `home_visit_required`, `home_visit_address` and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
   no time; older slot-based bookings keep theirs.

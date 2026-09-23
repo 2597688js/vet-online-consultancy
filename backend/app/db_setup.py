@@ -1,4 +1,4 @@
-"""Startup tasks: start the project's Postgres, create the database if missing, run migrations, make sure the doctor's account exists."""
+"""Startup tasks: start the project's Postgres, create the database if missing, run migrations."""
 import logging
 import subprocess
 from pathlib import Path
@@ -9,12 +9,9 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
 from app.config import BACKEND_DIR, settings
-from app.database import SessionLocal
-from app.models import User, UserRole
 
 logger = logging.getLogger("uvicorn.error")
 
-DOCTOR_NAME = "Dr. Nituparna Sarkar"
 LOCAL_POSTGRES_PORT = 5433
 
 
@@ -65,33 +62,10 @@ def _create_database_if_missing() -> None:
         admin_engine.dispose()
 
 
-def _ensure_doctor() -> None:
-    """Create the doctor's account (role ADMIN) on first run; keep her email in sync with DOCTOR_EMAIL.
-
-    It's what reminder emails go to and who is recorded as cancelling a request.
-    """
-    with SessionLocal() as db:
-        doctor = db.query(User).filter(User.role == UserRole.ADMIN).order_by(User.created_at.asc()).first()
-        if doctor is None:
-            db.add(
-                User(
-                    full_name=DOCTOR_NAME,
-                    email=settings.doctor_email or "doctor@example.com",
-                    role=UserRole.ADMIN,
-                    is_active=True,
-                )
-            )
-            logger.info("Created account for %s", DOCTOR_NAME)
-        elif settings.doctor_email and doctor.email != settings.doctor_email:
-            doctor.email = settings.doctor_email
-        db.commit()
-
-
 def prepare_database() -> None:
     _start_local_postgres()
     _create_database_if_missing()
     config = Config(str(BACKEND_DIR / "alembic.ini"))
     config.attributes["configure_logger"] = False  # keep uvicorn's logging intact
     command.upgrade(config, "head")
-    _ensure_doctor()
     logger.info("Admin dashboard: %s/admin", settings.app_base_url.rstrip("/"))

@@ -25,7 +25,7 @@ def get_current_user(
         raise unauthorized
 
     user = db.get(User, uuid.UUID(user_id))
-    if user is None or user.deleted_at is not None or not user.is_active:
+    if user is None:
         raise unauthorized
 
     return user

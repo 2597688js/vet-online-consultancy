@@ -35,7 +35,7 @@ API: http://localhost:8000 (interactive docs at http://localhost:8000/docs).
 
 On startup the backend starts its own PostgreSQL server on port 5433, with the data in the project's `db/`
 folder (created on first run and kept out of git). It then creates the `vet_online_consultancy` database
-if it doesn't exist, applies all migrations, creates Dr. Sarkar's account, and saves a generated
+if it doesn't exist, applies all migrations, and saves a generated
 `JWT_SECRET` (signs pet owners' login tokens) into `backend/.env`.
 You don't need to configure anything.
 
@@ -134,7 +134,7 @@ Restart the backend (and frontend, for `.env.local`) after changing these.
 5. Right-click a table → **View/Edit Data → All Rows**:
    - `appointments`: each request (main problem, home visit and address, status, contact name and WhatsApp number)
    - `pets`: the pet and health details from each request
-   - `users`: owner accounts and Dr. Sarkar
+   - `users`: pet owner accounts (Dr. Sarkar has no account; `/admin` needs no login)
 
 If pgAdmin can't connect, the database server isn't running: start the backend once, or run
 `pg_ctl -D db start` from the project folder. Edits in pgAdmin are permanent and skip the app's checks, so

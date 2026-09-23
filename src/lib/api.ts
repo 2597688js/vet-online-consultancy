@@ -3,8 +3,6 @@ export interface User {
   full_name: string;
   email: string;
   phone: string | null;
-  role: "OWNER" | "VET" | "ADMIN";
-  created_at: string;
 }
 
 export interface AuthResponse {

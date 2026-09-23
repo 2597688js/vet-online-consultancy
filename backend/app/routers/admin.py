@@ -8,7 +8,7 @@ from openpyxl.styles import Font
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Appointment, AppointmentStatus, PetGender, User, UserRole
+from app.models import Appointment, AppointmentStatus, PetGender
 from app.schemas import AppointmentAdminOut, AppointmentOut, AppointmentStatusUpdateRequest
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -150,8 +150,6 @@ def update_appointment_status(
     elif payload.status == AppointmentStatus.CANCELLED:
         appointment.cancelled_at = now
         appointment.cancellation_reason = payload.cancellation_reason
-        doctor = db.query(User).filter(User.role == UserRole.ADMIN).order_by(User.created_at.asc()).first()
-        appointment.cancelled_by_user_id = doctor.id if doctor else None
 
     appointment.status = payload.status
     db.commit()

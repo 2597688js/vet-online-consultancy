@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.models import AppointmentStatus, ConsultationType, PetGender, UserRole
+from app.models import AppointmentStatus, ConsultationType, PetGender
 
 
 class RegisterRequest(BaseModel):
@@ -24,8 +24,6 @@ class UserOut(BaseModel):
     full_name: str
     email: EmailStr
     phone: str | None
-    role: UserRole
-    created_at: datetime
 
     model_config = {"from_attributes": True}
 

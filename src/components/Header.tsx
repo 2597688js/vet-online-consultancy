@@ -51,15 +51,9 @@ export function Header() {
           {user ? (
             <>
               <span className="text-sm font-medium text-body">Hi, {greetingName(user.full_name)}</span>
-              {user.role === "OWNER" ? (
-                <Button variant="primary" href="/book">
-                  Book Now
-                </Button>
-              ) : (
-                <Button variant="primary" href="/admin">
-                  Dashboard
-                </Button>
-              )}
+              <Button variant="primary" href="/book">
+                Book Now
+              </Button>
               <Button variant="text" onClick={handleLogout}>
                 Logout
               </Button>
@@ -100,15 +94,9 @@ export function Header() {
           <div className="mt-2 flex flex-wrap gap-3 px-3">
             {user ? (
               <>
-                {user.role === "OWNER" ? (
-                  <Button variant="primary" href="/book" className="flex-1">
-                    Book Now
-                  </Button>
-                ) : (
-                  <Button variant="primary" href="/admin" className="flex-1">
-                    Dashboard
-                  </Button>
-                )}
+                <Button variant="primary" href="/book" className="flex-1">
+                  Book Now
+                </Button>
                 <Button variant="secondary" onClick={handleLogout} className="flex-1">
                   Logout
                 </Button>
