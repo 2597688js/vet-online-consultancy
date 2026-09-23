@@ -1,7 +1,7 @@
 # How to Use This Project
 
-Online consultation platform for Dr. Nituparna Sarkar's veterinary practice. Pet owners register,
-add their pets and book consultations; the doctor manages them from an admin dashboard.
+Online consultation platform for Dr. Nituparna Sarkar's veterinary practice. Pet owners register and
+submit consultation requests; the doctor contacts them on WhatsApp and manages requests from an admin dashboard.
 
 - **Frontend:** React + TypeScript + Vite (`src/`)
 - **Backend:** FastAPI + PostgreSQL (`backend/`)
@@ -58,10 +58,29 @@ Open **http://localhost:5173/admin**. There's no login or password.
 
 | Page | Who | What |
 |---|---|---|
+| `/` | Everyone | About Dr. Sarkar, with links to book or chat on WhatsApp |
 | `/register` | Pet owners | Create an account |
-| `/login` | Pet owners | Sign in |
-| `/book` | Pet owners | Book a consultation |
-| `/admin` | Doctor | See and manage all appointments (no login) |
+| `/login` | Pet owners | Sign in (email/password or Google) |
+| `/book` | Pet owners | Submit a consultation request |
+| `/admin` | Doctor | See and manage all requests (no login) |
+
+### Pet owners
+
+1. Register or sign in, then open **Book Now** (`/book`).
+2. Fill in the form:
+   - **Owner details:** name and WhatsApp number (pre-filled from the account; can be changed per request)
+   - **Pet details:** name (optional), species, breed, sex, age in years and months, plus optional weight and color
+   - **Health information:** main problem (required), plus optional medical history, current medications and allergies
+3. Click **Submit consultation request**. There's no time slot to pick; Dr. Sarkar contacts the owner on WhatsApp.
+4. To share photos or videos, use a **WhatsApp** link: the button on the confirmation screen, the link in
+   the Health section, or the floating button on every page.
+
+### Doctor
+
+1. Open `/admin`. New requests appear under **Pending**, newest first, with the owner's contact details, the
+   pet's details and the health information.
+2. Use the **WhatsApp** button on a request to message the owner and arrange the consultation.
+3. Mark the request **Confirmed**, **Completed** or **Cancelled** (with an optional reason).
 
 ## Configuration (optional)
 
@@ -76,7 +95,8 @@ Everything works with the defaults. To change something, create `backend/.env`; 
   share photos and videos. The links stay hidden until it's set.
 - **Google sign-in:** set `GOOGLE_CLIENT_ID` in `backend/.env` and `VITE_GOOGLE_CLIENT_ID` in `.env.local` at the project root.
 - **Email reminders to the doctor:** set `DOCTOR_EMAIL` and the `SMTP_*` values in `backend/.env`.
-  Each reminder links to the dashboard.
+  Reminders go out 15 minutes before an appointment's scheduled time and link to the dashboard. Requests
+  submitted through the current form have no scheduled time, so only older bookings get reminders.
 
 Restart the backend (and frontend, for `.env.local`) after changing these.
 
@@ -87,5 +107,6 @@ Restart the backend (and frontend, for `.env.local`) after changing these.
 | `connection refused` on backend start | Postgres isn't running. Start it (`brew services start postgresql@16`). |
 | `role "..." does not exist` / `password authentication failed` | Set `DATABASE_URL` in `backend/.env` (see Configuration). |
 | `permission denied to create database` | Create it yourself (`createdb vet_online_consultancy`) or use a user that can. |
-| Frontend shows network errors | Make sure the backend is running on port 8000. |
+| Frontend shows network errors, or the terminal shows `http proxy error ... ECONNREFUSED` | The backend isn't running. Start it (step 2) on port 8000. |
+| No WhatsApp links on the site | Set `VITE_DOCTOR_WHATSAPP` in `.env.local` and restart `npm run dev`. |
 | Port already in use | `lsof -ti :8000 \| xargs kill` (or `:5173`). |
