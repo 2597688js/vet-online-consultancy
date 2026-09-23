@@ -39,4 +39,27 @@ Once both are running:
 
 The admin dashboard has no login, so keep the app on the doctor's own computer until `/admin` is protected.
 
+## Viewing the database in pgAdmin
+
+The database lives in the project's `db/` folder and is served by the backend's own PostgreSQL on port **5433**
+(created and started automatically the first time the backend runs).
+
+1. Open pgAdmin 4 and right-click **Servers → Register → Server…**
+2. **General** tab: give it a name, e.g. `Vet consultancy (project db)`.
+3. **Connection** tab:
+
+   | Field | Value |
+   |---|---|
+   | Host name/address | `localhost` |
+   | Port | `5433` |
+   | Maintenance database | `postgres` |
+   | Username | your macOS username |
+   | Password | *(leave empty)* |
+
+4. Click **Save**, then open **Databases → vet_online_consultancy → Schemas → public → Tables**.
+   Right-click a table (`appointments`, `pets`, `users`) → **View/Edit Data → All Rows**.
+
+If pgAdmin can't connect, start the backend once (or run `pg_ctl -D db start` from the project folder).
+Edits made in pgAdmin are permanent; to just look at the data, **Download Excel** on `/admin` is the safer option.
+
 Full guide: **[HOW_TO_USE.md](HOW_TO_USE.md)**
