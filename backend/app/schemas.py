@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.models import AppointmentStatus, ConsultationType, PetGender
+from app.models import AppointmentStatus, PetGender
 
 
 class RegisterRequest(BaseModel):
@@ -52,7 +52,6 @@ class PetCreateRequest(BaseModel):
     weight_kg: Decimal | None = None
     color: str | None = Field(default=None, max_length=100)
     allergies: str | None = None
-    existing_conditions: str | None = None
     current_medications: str | None = None
     medical_history: str | None = None
 
@@ -67,10 +66,8 @@ class PetOut(BaseModel):
     weight_kg: Decimal | None
     color: str | None
     allergies: str | None
-    existing_conditions: str | None
     current_medications: str | None
     medical_history: str | None
-    created_at: datetime
 
     model_config = {"from_attributes": True}
 
@@ -92,19 +89,12 @@ class AppointmentCreateRequest(BaseModel):
 class AppointmentOut(BaseModel):
     id: uuid.UUID
     pet: PetOut
-    consultation_type: ConsultationType
-    duration_minutes: int
-    price_at_booking: Decimal
-    currency: str
-    scheduled_start: datetime | None
-    scheduled_end: datetime | None
     symptoms: str | None
     contact_name: str | None
     contact_phone: str | None
     home_visit_required: bool
     home_visit_address: str | None
     status: AppointmentStatus
-    confirmed_at: datetime | None
     cancellation_reason: str | None
     created_at: datetime
 

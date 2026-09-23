@@ -59,21 +59,22 @@ a **Home visit** tag. **Download Excel** (`GET /api/admin/appointments/export`, 
 
 ### Data model (`backend/app/models.py`)
 
-- `users` (pet owners only, no role column), `pets`, `appointments`. Dr. Sarkar has no row: she
-  doesn't sign in (`/admin` has no login), requests don't link to a doctor, and reminder emails go to
-  `DOCTOR_EMAIL`.
-- An appointment stores the booking's `contact_name` / `contact_phone`, `symptoms` (the main
-  problem), `home_visit_required`, `home_visit_address` and `status`. `scheduled_start` / `scheduled_end` are nullable: new requests have
-  no time; older slot-based bookings keep theirs.
-- Each request creates a new `pets` row; there's no saved-pets list.
+Three tables, each with only the columns the app uses:
+
+- `users` (pet owners only): `id`, `email`, `password_hash`, `google_id`, `full_name`, `phone`.
+  Dr. Sarkar has no row: she doesn't sign in (`/admin` has no login).
+- `pets`: `id`, `owner_id`, `name`, `species`, `breed`, `gender`, `date_of_birth` (from the age
+  entered), `weight_kg`, `color`, `allergies`, `current_medications`, `medical_history`.
+- `appointments` (the requests): `id`, `pet_id`, `contact_name`, `contact_phone`, `symptoms` (the
+  main problem), `home_visit_required`, `home_visit_address`, `status`, `cancellation_reason`,
+  `created_at`. The owner is reached through the pet.
+- Each request creates a new `pets` row; there's no saved-pets list, no time slot and no reminder emails.
 
 ### Configuration
 
 - `VITE_DOCTOR_WHATSAPP` in `.env.local`: Dr. Sarkar's WhatsApp number; WhatsApp links are
   hidden until it's set.
 - `VITE_GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_ID`: Google sign-in.
-- `DOCTOR_EMAIL` + `SMTP_*`: 15-minute reminder emails. These only fire for appointments with
-  a scheduled time, so requests from the current form don't trigger them.
 
 ### Not built (deliberately dropped from the original plan)
 

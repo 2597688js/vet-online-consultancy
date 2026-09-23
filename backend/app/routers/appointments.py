@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -8,17 +6,12 @@ from app.deps import get_current_user
 from app.models import (
     Appointment,
     AppointmentStatus,
-    ConsultationType,
     Pet,
     User,
 )
 from app.schemas import AppointmentCreateRequest, AppointmentOut
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
-
-DEFAULT_DURATION_MINUTES = 30
-DEFAULT_CONSULTATION_TYPE = ConsultationType.VIDEO
-
 
 @router.post("", response_model=AppointmentOut, status_code=status.HTTP_201_CREATED)
 def create_appointment(
@@ -27,7 +20,7 @@ def create_appointment(
     db: Session = Depends(get_db),
 ) -> Appointment:
     pet = db.get(Pet, payload.pet_id)
-    if pet is None or pet.deleted_at is not None or pet.owner_id != current_user.id:
+    if pet is None or pet.owner_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pet not found")
 
     # Optional even for home visits: owners can share their location on WhatsApp instead.
@@ -38,11 +31,6 @@ def create_appointment(
     # No time is chosen at booking; Dr. Sarkar contacts the owner to arrange the consultation.
     appointment = Appointment(
         pet_id=pet.id,
-        owner_id=current_user.id,
-        consultation_type=DEFAULT_CONSULTATION_TYPE,
-        duration_minutes=DEFAULT_DURATION_MINUTES,
-        price_at_booking=Decimal("0.00"),
-        currency="INR",
         symptoms=payload.symptoms.strip(),
         contact_name=payload.contact_name.strip(),
         contact_phone=payload.contact_phone.strip(),

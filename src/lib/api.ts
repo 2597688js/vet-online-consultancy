@@ -23,10 +23,8 @@ export interface Pet {
   weight_kg: string | null;
   color: string | null;
   allergies: string | null;
-  existing_conditions: string | null;
   current_medications: string | null;
   medical_history: string | null;
-  created_at: string;
 }
 
 export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
@@ -34,19 +32,12 @@ export type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELL
 export interface Appointment {
   id: string;
   pet: Pet;
-  consultation_type: "VIDEO" | "AUDIO" | "CHAT";
-  duration_minutes: number;
-  price_at_booking: string;
-  currency: string;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
   symptoms: string | null;
   contact_name: string | null;
   contact_phone: string | null;
   home_visit_required: boolean;
   home_visit_address: string | null;
   status: AppointmentStatus;
-  confirmed_at: string | null;
   cancellation_reason: string | null;
   created_at: string;
 }
@@ -125,7 +116,6 @@ export interface PetInput {
   weight_kg?: string;
   color?: string;
   allergies?: string;
-  existing_conditions?: string;
   current_medications?: string;
   medical_history?: string;
 }

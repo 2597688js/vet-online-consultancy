@@ -99,9 +99,6 @@ Everything works with the defaults. To change something, create `backend/.env`; 
   the "Chat on WhatsApp" links (floating button, home page, footer, booking page) so owners can message her and
   share photos and videos. The links stay hidden until it's set.
 - **Google sign-in:** set `GOOGLE_CLIENT_ID` in `backend/.env` and `VITE_GOOGLE_CLIENT_ID` in `.env.local` at the project root.
-- **Email reminders to the doctor:** set `DOCTOR_EMAIL` and the `SMTP_*` values in `backend/.env`.
-  Reminders go out 15 minutes before an appointment's scheduled time and link to the dashboard. Requests
-  submitted through the current form have no scheduled time, so only older bookings get reminders.
 
 Restart the backend (and frontend, for `.env.local`) after changing these.
 

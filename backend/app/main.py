@@ -6,15 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.db_setup import prepare_database
 from app.routers import admin, appointments, auth, pets
-from app.scheduler import start_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     prepare_database()
-    scheduler = start_scheduler()
     yield
-    scheduler.shutdown()
 
 
 app = FastAPI(title="Vet Online Consultancy API", lifespan=lifespan)

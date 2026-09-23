@@ -7,7 +7,6 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
-    Index,
     Numeric,
     String,
     Text,
@@ -32,12 +31,6 @@ class PetGender(str, enum.Enum):
     MALE = "MALE"
     FEMALE = "FEMALE"
     UNKNOWN = "UNKNOWN"
-
-
-class ConsultationType(str, enum.Enum):
-    VIDEO = "VIDEO"
-    AUDIO = "AUDIO"
-    CHAT = "CHAT"
 
 
 class AppointmentStatus(str, enum.Enum):
@@ -87,12 +80,8 @@ class Pet(Base):
     weight_kg: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
     color: Mapped[str | None] = mapped_column(String, nullable=True)
     allergies: Mapped[str | None] = mapped_column(Text, nullable=True)
-    existing_conditions: Mapped[str | None] = mapped_column(Text, nullable=True)
     current_medications: Mapped[str | None] = mapped_column(Text, nullable=True)
     medical_history: Mapped[str | None] = mapped_column(Text, nullable=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     owner: Mapped["User"] = relationship(back_populates="pets", foreign_keys=[owner_id])
     appointments: Mapped[list["Appointment"]] = relationship(back_populates="pet", foreign_keys="Appointment.pet_id")
@@ -108,41 +97,18 @@ class Appointment(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
     pet_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("pets.id", ondelete="RESTRICT"), nullable=False)
-    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
 
-    consultation_type: Mapped[ConsultationType] = mapped_column(pg_enum(ConsultationType, "consultation_type"), nullable=False)
-    duration_minutes: Mapped[int] = mapped_column(nullable=False)
-    price_at_booking: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    currency: Mapped[str] = mapped_column(String, default="USD", nullable=False)
-
-    # Owners no longer pick a time; the doctor contacts them. Kept for bookings made with a slot.
-    scheduled_start: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    scheduled_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-
-    symptoms: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Contact details given on the booking form; may differ from the account's name/phone.
     contact_name: Mapped[str | None] = mapped_column(String, nullable=True)
     contact_phone: Mapped[str | None] = mapped_column(String, nullable=True)
+    symptoms: Mapped[str | None] = mapped_column(Text, nullable=True)
     home_visit_required: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
     home_visit_address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     status: Mapped[AppointmentStatus] = mapped_column(
         pg_enum(AppointmentStatus, "appointment_status"), default=AppointmentStatus.PENDING, index=True, nullable=False
     )
-    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     pet: Mapped["Pet"] = relationship(back_populates="appointments", foreign_keys=[pet_id])
-    owner: Mapped["User"] = relationship(foreign_keys=[owner_id])
-
-
-# extra composite indexes (declared separately to keep single-column ones above readable)
-Index("ix_appointments_owner_status", Appointment.owner_id, Appointment.status)
-Index("ix_appointments_scheduled_start", Appointment.scheduled_start)
-

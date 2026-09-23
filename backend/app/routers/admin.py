@@ -26,9 +26,9 @@ def _to_admin_out(appointment: Appointment) -> AppointmentAdminOut:
     return AppointmentAdminOut.model_validate(
         {
             **AppointmentOut.model_validate(appointment).model_dump(),
-            "owner_name": appointment.contact_name or appointment.owner.full_name,
-            "owner_email": appointment.owner.email,
-            "owner_phone": appointment.contact_phone or appointment.owner.phone,
+            "owner_name": appointment.contact_name or appointment.pet.owner.full_name,
+            "owner_email": appointment.pet.owner.email,
+            "owner_phone": appointment.contact_phone or appointment.pet.owner.phone,
         }
     )
 
@@ -68,11 +68,11 @@ EXPORT_COLUMNS = [
     ("Status", lambda a: a.status.value.title()),
     ("Home visit required", lambda a: "Yes" if a.home_visit_required else "No"),
     ("Home visit address", lambda a: a.home_visit_address or ""),
-    ("Owner name", lambda a: a.contact_name or a.owner.full_name),
-    ("Owner WhatsApp", lambda a: a.contact_phone or a.owner.phone or ""),
-    ("Account name", lambda a: a.owner.full_name),
-    ("Account email", lambda a: a.owner.email),
-    ("Account phone", lambda a: a.owner.phone or ""),
+    ("Owner name", lambda a: a.contact_name or a.pet.owner.full_name),
+    ("Owner WhatsApp", lambda a: a.contact_phone or a.pet.owner.phone or ""),
+    ("Account name", lambda a: a.pet.owner.full_name),
+    ("Account email", lambda a: a.pet.owner.email),
+    ("Account phone", lambda a: a.pet.owner.phone or ""),
     ("Pet name", lambda a: a.pet.name or ""),
     ("Species", lambda a: a.pet.species),
     ("Breed", lambda a: a.pet.breed or ""),
@@ -82,13 +82,9 @@ EXPORT_COLUMNS = [
     ("Weight (kg)", lambda a: float(a.pet.weight_kg) if a.pet.weight_kg is not None else ""),
     ("Color / markings", lambda a: a.pet.color or ""),
     ("Main problem", lambda a: a.symptoms or ""),
-    ("Medical history", lambda a: a.pet.medical_history or a.pet.existing_conditions or ""),
+    ("Medical history", lambda a: a.pet.medical_history or ""),
     ("Current medications", lambda a: a.pet.current_medications or ""),
     ("Allergies", lambda a: a.pet.allergies or ""),
-    ("Scheduled time", lambda a: _format_datetime(a.scheduled_start)),
-    ("Confirmed", lambda a: _format_datetime(a.confirmed_at)),
-    ("Completed", lambda a: _format_datetime(a.completed_at)),
-    ("Cancelled", lambda a: _format_datetime(a.cancelled_at)),
     ("Cancellation reason", lambda a: a.cancellation_reason or ""),
 ]
 
@@ -142,13 +138,7 @@ def update_appointment_status(
             detail=f"Cannot move appointment from {appointment.status.value} to {payload.status.value}",
         )
 
-    now = datetime.now()
-    if payload.status == AppointmentStatus.CONFIRMED:
-        appointment.confirmed_at = now
-    elif payload.status == AppointmentStatus.COMPLETED:
-        appointment.completed_at = now
-    elif payload.status == AppointmentStatus.CANCELLED:
-        appointment.cancelled_at = now
+    if payload.status == AppointmentStatus.CANCELLED:
         appointment.cancellation_reason = payload.cancellation_reason
 
     appointment.status = payload.status

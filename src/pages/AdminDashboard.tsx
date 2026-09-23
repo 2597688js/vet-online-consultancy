@@ -158,9 +158,7 @@ export function AdminDashboard() {
                         {appointment.owner_name} · {appointment.owner_phone ?? "no phone on file"}
                       </p>
                       <p className="mt-1 text-sm text-muted">
-                        {appointment.scheduled_start
-                        ? formatDateTime(appointment.scheduled_start)
-                        : `Requested ${formatDateTime(appointment.created_at)}`}
+                        Requested {formatDateTime(appointment.created_at)}
                       </p>
                       <p className="mt-1 text-sm text-muted">
                         {[
@@ -177,7 +175,7 @@ export function AdminDashboard() {
                           <span className="font-semibold text-ink">Main problem:</span> {appointment.symptoms}
                         </p>
                       )}
-                      <PetHealthDetail label="Medical history" value={appointment.pet.medical_history ?? appointment.pet.existing_conditions} />
+                      <PetHealthDetail label="Medical history" value={appointment.pet.medical_history} />
                       <PetHealthDetail label="Medications" value={appointment.pet.current_medications} />
                       <PetHealthDetail label="Allergies" value={appointment.pet.allergies} />
                       {appointment.home_visit_required && (
