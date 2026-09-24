@@ -1,66 +1,26 @@
 # Vet Online Consultancy
 
-Online consultation platform for Dr. Nituparna Sarkar (a single-veterinarian practice). Pet owners register
-and submit consultation requests; Dr. Sarkar manages them from the admin dashboard.
+Requires Node, Python 3.11+ and PostgreSQL installed.
 
-## How booking works
-
-1. The pet owner signs in and fills in the form at `/book`:
-   - **Owner:** name and WhatsApp number (pre-filled from their account, editable per request)
-   - **Home visit:** Yes/No (must be answered), with an optional address or location shared on WhatsApp
-   - **Pet:** name (optional), species, breed, age, sex, plus optional weight
-   - **Health:** main problem (required), medical history, current medications and allergies (optional)
-   - Owners share photos and videos with Dr. Sarkar directly on WhatsApp.
-2. There is no time slot to pick. The request is saved as **Pending**.
-3. Dr. Sarkar sees each request on the admin dashboard with the owner's contact and the pet's details,
-   contacts the owner using its WhatsApp button to arrange the consultation, then marks it **Confirmed**, **Completed** or
-   **Cancelled**. **Download Excel** on the dashboard exports every request with the owner's and pet's details.
-
-Quick start (needs Node, Python 3.11+ and PostgreSQL installed; the backend runs its own PostgreSQL server
-with the data in the project's `db/` folder):
+## Backend
 
 ```bash
-# terminal 1: backend
-cd backend && python3 -m venv .venv && source .venv/bin/activate
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-
-# terminal 2: frontend
-npm install && npm run dev
 ```
 
-Once both are running:
+Runs at http://localhost:8000
 
-| What | Link |
-|---|---|
-| Website (pet owners) | http://localhost:5173 |
-| Admin dashboard (Nituparna) | http://localhost:5173/admin |
-| Backend API | http://localhost:8000 |
-| API docs | http://localhost:8000/docs |
+## Frontend
 
-The admin dashboard has no login, so keep the app on the doctor's own computer until `/admin` is protected.
+In a second terminal, from the project root:
 
-## Viewing the database in pgAdmin
+```bash
+npm install
+npm run dev
+```
 
-The database lives in the project's `db/` folder and is served by the backend's own PostgreSQL on port **5433**
-(created and started automatically the first time the backend runs).
-
-1. Open pgAdmin 4 and right-click **Servers → Register → Server…**
-2. **General** tab: give it a name, e.g. `Vet consultancy (project db)`.
-3. **Connection** tab:
-
-   | Field | Value |
-   |---|---|
-   | Host name/address | `localhost` |
-   | Port | `5433` |
-   | Maintenance database | `postgres` |
-   | Username | your macOS username |
-   | Password | *(leave empty)* |
-
-4. Click **Save**, then open **Databases → vet_online_consultancy → Schemas → public → Tables**.
-   Right-click a table (`appointments`, `pets`, `users`) → **View/Edit Data → All Rows**.
-
-If pgAdmin can't connect, start the backend once (or run `pg_ctl -D db start` from the project folder).
-Edits made in pgAdmin are permanent; to just look at the data, **Download Excel** on `/admin` is the safer option.
-
-Full guide: **[HOW_TO_USE.md](HOW_TO_USE.md)**
+Runs at http://localhost:5173 (admin dashboard at http://localhost:5173/admin)
